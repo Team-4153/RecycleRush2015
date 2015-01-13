@@ -1,11 +1,10 @@
 
 package org.usfirst.frc.team4153.robot;
 
-import java.nio.IntBuffer;
+import org.usfirst.frc.team4153.robot.subsystems.Chassis;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
-import edu.wpi.first.wpilibj.Talon;
-import edu.wpi.first.wpilibj.hal.PDPJNI;
+import edu.wpi.first.wpilibj.Joystick;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -16,7 +15,9 @@ import edu.wpi.first.wpilibj.hal.PDPJNI;
  */
 public class Robot extends IterativeRobot {
 	
-	Talon talon1;
+	Chassis chassis;
+	
+	
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
@@ -26,14 +27,12 @@ public class Robot extends IterativeRobot {
     	// This line when deployed seems to get rid of the sticky fault
     	// but prevents robot code from happening
     	//PDPJNI.clearPDPStickyFaults(IntBuffer.wrap(new int[]{0}));
-
-    	talon1 = new Talon(1);
-    	try {
-    		// CANJaguar testJag = new CANJaguar(1);
-    	}catch (Exception e){
-    		// This will throw an error because there is no can
-    		
-    	}
+    	
+    	Joystick driveStick = new Joystick(0);
+    	chassis = new Chassis( );
+    	chassis.init();
+    	
+    	
     }
 
     /**
@@ -41,8 +40,8 @@ public class Robot extends IterativeRobot {
      */
     public void autonomousPeriodic() {
     	//CANJaguar jag1 = new CANJaguar(1);
+    
     	
-    	talon1.set(0.25);
     }
     
 
@@ -50,14 +49,15 @@ public class Robot extends IterativeRobot {
      * This function is called periodically during operator control
      */
     public void teleopPeriodic() {
-    	talon1.set(0.);
+    
     }
     
     /**
      * This function is called periodically during test mode
      */
     public void testPeriodic() {
-    
+    	chassis.drive( 0.25, 0.25 );
+    	
     }
     
 }
