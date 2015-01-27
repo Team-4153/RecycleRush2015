@@ -59,7 +59,8 @@ public class Robot extends IterativeRobot {
 	public void teleopPeriodic() {
 		chassis.joystickDrive();	
 		
-	//	wantedPosition = Sensors.getManipulatorJoystick() + Forklift.liftMotor.getPosition();
+		double wantedPosition = forklift.findWantedPosition();
+		
 		forklift.moveLiftMotor(wantedPosition);
 		
 		

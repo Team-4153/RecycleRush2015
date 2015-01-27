@@ -29,7 +29,7 @@ public class Chassis extends Subsystem {
 		Joystick driverJoystick = Sensors.getDriverJoystick();
 		drive.mecanumDrive_Polar(driverJoystick.getMagnitude(),
 				driverJoystick.getDirectionDegrees(), gyroAngle);		
-		System.out.println( "New Encoder test value: " + frontRight.getPosition() / 8192 );
+		//System.out.println( "New Encoder test value: " + frontRight.getPosition() / 8192 );
 		
 	}
 
