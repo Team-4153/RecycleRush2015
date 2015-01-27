@@ -20,6 +20,7 @@ public class Robot extends IterativeRobot {
 
 	Chassis chassis;
 	Forklift forklift;
+	
 	 
 
 	/**
@@ -57,7 +58,9 @@ public class Robot extends IterativeRobot {
 	 */
 	public void teleopPeriodic() {
 		chassis.joystickDrive();	
-		forklift.moveLiftMotor(15.0);
+		
+	//	wantedPosition = Sensors.getManipulatorJoystick() + Forklift.liftMotor.getPosition();
+		forklift.moveLiftMotor(wantedPosition);
 		
 		
 		
