@@ -5,6 +5,7 @@ import org.usfirst.frc.team4153.util.Sensors;
 import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.CANJaguar.ControlMode;
 import edu.wpi.first.wpilibj.CANTalon;
+import edu.wpi.first.wpilibj.Joystick;
 
 public class Forklift extends Subsystem {
 	
