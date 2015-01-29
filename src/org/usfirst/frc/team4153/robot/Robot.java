@@ -20,6 +20,7 @@ public class Robot extends IterativeRobot {
 
 	Chassis chassis;
 	Forklift forklift;
+	Sensors sensors;
 	
 	 
 
@@ -32,16 +33,16 @@ public class Robot extends IterativeRobot {
 		// This line when deployed seems to get rid of the sticky fault
 		// but prevents robot code from happening
 		// PDPJNI.clearPDPStickyFaults(IntBuffer.wrap(new int[]{0}));
-
-		
-
 		//Joystick driveStick = new Joystick(RobotMap.DRIVER_JOYSTICK);
+		
+		sensors = new Sensors();
+		sensors.init();
+		
 		chassis = new Chassis();
 		chassis.init();
 		
-		
-		
 		forklift = new Forklift();
+		forklift.init();
 		
 
 	}
@@ -59,9 +60,7 @@ public class Robot extends IterativeRobot {
 	public void teleopPeriodic() {
 		chassis.joystickDrive();	
 		
-		double wantedPosition = forklift.findWantedPosition();
-		
-		forklift.moveLiftMotor(wantedPosition);
+		//forklift.iterateLiftMotor();
 		
 		
 		
@@ -80,5 +79,10 @@ public class Robot extends IterativeRobot {
 		 SmartDashboard.putBoolean("returnBool",SmartDashboard.getBoolean("dashButton1"));
 
 	}
-
+	public void disabledInit() {
+	
+		forklift.reset();
+		sensors.reset();
+	
+	}
 }

@@ -13,26 +13,30 @@ public class Forklift extends Subsystem {
 	private CANTalon liftMotor;
 	private static Joystick manipulatorJoystick;
 	
-	public Forklift() {
+	public void init() {
 		manipulatorJoystick = new Joystick(RobotMap.MANIPULATOR_JOYSTICK);
 		liftMotor = new CANTalon( RobotMap.LIFT_MOTOR );
 		liftMotor.changeControlMode( CANTalon.ControlMode.Position);	
 		liftMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
 		liftMotor.setPosition(0);
-		liftMotor.setPID(.001,0.001,1);
-		liftMotor.setCloseLoopRampRate(0.05);
+		liftMotor.setPID(0.1, .001, 1, .001, 100, 36, 0);   		//magical numbers...manual
+		liftMotor.setProfile(0);
 		liftMotor.ClearIaccum();
-		
-		
+		liftMotor.reverseSensor(true);
 	
 	}
+	
+	public void reset() {
+		liftMotor.setPosition( 0.0 );
+	}
+	
 	public void moveLiftMotor( double wantedPosition) {
 		System.out.println( "Wanted Value: " + wantedPosition + "\t    Lift motor position: " + liftMotor.getPosition() );
 		liftMotor.set(1500);
 		
 	}
 	
-	public double findWantedPosition() {
+	public void iterateLiftMotor() {
 		//boolean buttonIsPressed = SmartDashboard.getBoolean("PresetButtonPressed");
 		double x = 0.0;
 		/*																							//actual code to be used
@@ -51,7 +55,8 @@ public class Forklift extends Subsystem {
 		
 		x = ( manipulatorJoystick.getY() * RobotMap.CLICKS_PER_ROTATION * 3 ) + liftMotor.getPosition();  //test code 
 		
+		System.out.println( "Wanted Value: " + x + "\t    Lift motor position: " + liftMotor.getPosition() );
 		
-		return x;
+		liftMotor.set( 5 * RobotMap.CLICKS_PER_ROTATION );
 	}
 }

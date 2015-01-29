@@ -8,24 +8,22 @@ import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-public abstract class Sensors {
+public class Sensors {
 
 	private static Gyro gyro;
 	private static AnalogInput debug;
 	private static Joystick driverJoystick;
 	private static Encoder encoder;
 	
-	public static void CostructAllSensors() {						//can delete if not wanted.... doesn't check every time
+	public static void init() {						//can delete if not wanted.... doesn't check every time
 		gyro = new Gyro( RobotMap.GYRO);							//if an object is constructed
+		gyro.reset();
 		driverJoystick = new Joystick( RobotMap.DRIVER_JOYSTICK);
 		encoder = new Encoder( RobotMap.ENCODER1, RobotMap.ENCODER0);
 		
 	}
 
 	public static Joystick getDriverJoystick() {
-		if (driverJoystick == null) {
-			driverJoystick = new Joystick(RobotMap.DRIVER_JOYSTICK);
-		}
 		return driverJoystick;
 	}
 	
@@ -34,13 +32,7 @@ public abstract class Sensors {
 	public static double getGyroAngle() {
 		
 		Joystick driverJoystick = Sensors.getDriverJoystick();
-		if (gyro == null) {			
-			gyro = new Gyro(RobotMap.GYRO);
-			gyro.reset();
-		
-		}
-		
-		
+
 		if( driverJoystick.getRawButton(2) ) {
 			gyro.reset();
 		}
@@ -63,6 +55,10 @@ public abstract class Sensors {
 
 		}
 		return debug.getVoltage(); // send the angle back
+	}
+
+	public void reset() {
+		gyro.reset(); 			//if disabled 
 	}
 	
 	

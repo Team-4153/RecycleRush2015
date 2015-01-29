@@ -17,10 +17,10 @@ public abstract class RobotMap {
 	public static final int MANIPULATOR_JOYSTICK = 1;
 
 	// Motor ports
-	public static final int FRONT_RIGHT_TALON = 4;
-	public static final int FRONT_LEFT_TALON = 1;
-	public static final int BACK_RIGHT_TALON = 2;
-	public static final int BACK_LEFT_TALON = 3;
+	public static final int FRONT_RIGHT_TALON = 1;
+	public static final int FRONT_LEFT_TALON = 3;
+	public static final int BACK_RIGHT_TALON = 4;
+	public static final int BACK_LEFT_TALON = 2;
 	public static final int LIFT_MOTOR = 5;
 
 	// Encoder

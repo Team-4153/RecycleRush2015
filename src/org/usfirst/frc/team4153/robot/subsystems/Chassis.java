@@ -12,6 +12,7 @@ public class Chassis extends Subsystem {
 	CANTalon frontLeft;
 	CANTalon backRight;
 	CANTalon backLeft;
+	
 	RobotDrive drive;
 
 	public void init() {
@@ -19,8 +20,16 @@ public class Chassis extends Subsystem {
 		frontLeft = new CANTalon(RobotMap.FRONT_LEFT_TALON);
 		backRight = new CANTalon(RobotMap.BACK_RIGHT_TALON);
 		backLeft = new CANTalon(RobotMap.BACK_LEFT_TALON);
+		
+		frontRight.changeControlMode(CANTalon.ControlMode.PercentVbus);
+		frontLeft.changeControlMode(CANTalon.ControlMode.PercentVbus);
+		backRight.changeControlMode(CANTalon.ControlMode.PercentVbus);
+		backLeft.changeControlMode(CANTalon.ControlMode.PercentVbus);
+		
+		frontRight.reverseOutput(true);
+		frontLeft.reverseOutput(true);
 
-		drive = new RobotDrive(frontRight, frontLeft, backRight, backLeft);
+		drive = new RobotDrive( frontLeft, backLeft, frontRight, backRight );
 		drive.setSafetyEnabled(false);												//disable safety restrictions to boost performance
 	}
 
