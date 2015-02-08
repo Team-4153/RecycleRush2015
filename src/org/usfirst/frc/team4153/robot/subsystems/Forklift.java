@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Forklift extends Subsystem {
 	
-	private CANTalon liftMotor;
+	private CANTalon liftMotor, forkMotor;
 	private static Joystick manipulatorJoystick;
 	
 	public void init() {
@@ -23,11 +23,20 @@ public class Forklift extends Subsystem {
 		liftMotor.setProfile(0);
 		liftMotor.ClearIaccum();
 		liftMotor.reverseSensor(true);
-	
+		
+		forkMotor = new CANTalon(RobotMap.FORK_MOTOR);
+		forkMotor.changeControlMode(CANTalon.ControlMode.Position);
+		forkMotor.setFeedbackDevice(CANTalon.FeedbackDevice.AnalogPot);
+		forkMotor.setPosition(0);
+		forkMotor.setPID(0.1, 0.001, 1, 0.001, 100, 36, 0);
+		forkMotor.setProfile(0);
+		forkMotor.ClearIaccum();
+		
 	}
 	
 	public void reset() {
 		liftMotor.setPosition( 0.0 );
+		forkMotor.setPosition(0.0);
 	}
 	
 	public void moveLiftMotor( double wantedPosition) {
@@ -39,7 +48,7 @@ public class Forklift extends Subsystem {
 	public void iterateLiftMotor() {
 		//boolean buttonIsPressed = SmartDashboard.getBoolean("PresetButtonPressed");
 		double x = 0.0;
-		/*																							//actual code to be used
+		/*																						//actual code to be used
 		if( Math.abs(manipulatorJoystick.getY()) < 0.05 ) {
 			if( buttonIsPressed ) {
 				x = SmartDashboard.getNumber("PresetValue");
@@ -56,7 +65,7 @@ public class Forklift extends Subsystem {
 		x = ( manipulatorJoystick.getY() * RobotMap.CLICKS_PER_ROTATION * 3 ) + liftMotor.getPosition();  //test code 
 		
 		System.out.println( "Wanted Value: " + x + "\t    Lift motor position: " + liftMotor.getPosition() );
-		
-		liftMotor.set( 5 * RobotMap.CLICKS_PER_ROTATION );
+		//liftMotor.set( 5 * RobotMap.CLICKS_PER_ROTATION );
+		liftMotor.set(x);
 	}
 }

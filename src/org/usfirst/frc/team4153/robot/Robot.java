@@ -1,4 +1,6 @@
 package org.usfirst.frc.team4153.robot;
+
+
 import edu.wpi.first.wpilibj.smartdashboard.*;
 
 import org.usfirst.frc.team4153.robot.subsystems.Chassis;
@@ -8,7 +10,7 @@ import org.usfirst.frc.team4153.util.Sensors;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
+import edu.wpi.first.wpilibj.hal.*;
 /**
  * The VM is configured to automatically run this class, and to call the
  * functions corresponding to each mode, as described in the IterativeRobot
@@ -32,11 +34,13 @@ public class Robot extends IterativeRobot {
 
 		// This line when deployed seems to get rid of the sticky fault
 		// but prevents robot code from happening
-		// PDPJNI.clearPDPStickyFaults(IntBuffer.wrap(new int[]{0}));
+		
+		//PDPJNI.clearPDPStickyFaults(IntBuffer.wrap(new int[]{0}));
+		
 		//Joystick driveStick = new Joystick(RobotMap.DRIVER_JOYSTICK);
 		
 		sensors = new Sensors();
-		sensors.init();
+		Sensors.init();
 		
 		chassis = new Chassis();
 		chassis.init();
@@ -81,7 +85,7 @@ public class Robot extends IterativeRobot {
 	}
 	public void disabledInit() {
 	
-		forklift.reset();
+		//forklift.reset();
 		sensors.reset();
 	
 	}
