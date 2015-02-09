@@ -131,6 +131,10 @@ public class Chassis extends Subsystem {
 		System.out.println(frontRight.getSetpoint());
 		drive.setSafetyEnabled(false);
 		drive(joystick.getX(), joystick.getY(), joystick.getTwist());
+		if(joystick.getRawButton(2) == true) {
+			Sensors.gyroReset();
+			System.out.println("Gyro Reset Succesfull");
+		}
 	}
 
 	public void drive(double x, double y, double rotation) {

@@ -15,9 +15,9 @@ public class Sensors {
 	private static Joystick driverJoystick;
 	private static Encoder encoder;
 	
-	@Deprecated
+	//@Deprecated
 	public static void init() {						//can delete if not wanted.... doesn't check every time
-		
+		getGyro();
 		// This method should not exist: it does not make sense to have to initialize a bunch of static objects
 		// I'll leave it here as a warning but it should not be used
 		
@@ -41,8 +41,12 @@ public class Sensors {
 		if (gyro == null) {
 			gyro = new Gyro( RobotMap.GYRO);							//if an object is constructed
 			gyro.reset();
+			System.out.println("Gyro Initalized");
 		}
 		return gyro;
+	}
+	public static void gyroReset() {
+		gyro.reset();
 	}
 
 	public static double getGyroAngle() {
