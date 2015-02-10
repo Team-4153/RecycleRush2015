@@ -62,9 +62,9 @@ public class Robot extends IterativeRobot {
 	 * This function is called periodically during operator control
 	 */
 	public void teleopPeriodic() {
-		chassis.joystickDrive();	
+		//chassis.joystickDrive();	
 		
-		//forklift.iterateLiftMotor();
+		forklift.iterateLiftMotor();
 		
 		
 		
