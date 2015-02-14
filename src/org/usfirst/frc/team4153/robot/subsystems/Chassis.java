@@ -16,20 +16,10 @@ public class Chassis implements Subsystem {
 	
 	protected RobotDrive drive;
 	
-	protected int maxSpeed;
-	protected int minSpeed = 1000;
+	private boolean isMechanum = true;	
 	
-	protected int counter = 0;
-	
-	protected long lastTime;
-	
-	protected double tickPer10ms;
-	
-	protected long lastTics;
 
 	public void init() {
-		// Initialize the Talons with the correct modes, etc.
-		//frontRight = new CANTalon(RobotMap.FRONT_RIGHT_TALON);
 		frontRight = new CANTalon(RobotMap.FRONT_RIGHT_TALON, 1);
 		frontLeft = new CANTalon(RobotMap.FRONT_LEFT_TALON);
 		backRight = new CANTalon(RobotMap.BACK_RIGHT_TALON);
@@ -45,11 +35,7 @@ public class Chassis implements Subsystem {
 		backRight.changeControlMode(CANTalon.ControlMode.Speed);
 		backLeft.changeControlMode(CANTalon.ControlMode.Speed);
 	
-		double P=1;
-		double I= 0;  //0;.001;
-		double D=0;
-		double feedforward=.001;
-		double ramp=360;
+		
 		frontRight.reverseOutput(false);
 		frontRight.reverseSensor(false);
 		frontLeft.reverseOutput(true);
@@ -58,98 +44,54 @@ public class Chassis implements Subsystem {
 		backRight.reverseSensor(false);
 		backLeft.reverseOutput(false);
 		backLeft.reverseSensor(true);
-		//Front left PID ( 0.25, 0.0020, 0, 0.10, 00, -30, 0);
 		
-		frontRight.setPID( 0.25, 0.0020, 0, 0.10, 00, -30, 0);
-		frontLeft.setPID( 0.25, 0.0020, 0, 0.10, 00, -30, 0);
-		backRight.setPID( 0.25, 0.0020, 0, 0.10, 00, -30, 0);
-		backLeft.setPID( 0.25, 0.0020, 0, 0.10, 00, -30, 0);
 		
-//		frontRight.ClearIaccum();
-//		frontLeft.ClearIaccum();
-//		backRight.ClearIaccum();
-//		backLeft.ClearIaccum();
-		
-//		frontRight.setProfile(0);
-//		frontLeft.setProfile(0);
-//		backRight.setProfile(0);
-//		backLeft.setProfile(0);
+		frontRight.setPID( RobotMap.DRIVER_P, RobotMap.DRIVER_I, RobotMap.DRIVER_D, RobotMap.DRIVER_FEED_FORWARD, 00, RobotMap.DRIVER_RAMP, 0);
+		frontLeft.setPID(  RobotMap.DRIVER_P, RobotMap.DRIVER_I, RobotMap.DRIVER_D, RobotMap.DRIVER_FEED_FORWARD, 00, RobotMap.DRIVER_RAMP, 0);
+		backRight.setPID(  RobotMap.DRIVER_P, RobotMap.DRIVER_I, RobotMap.DRIVER_D, RobotMap.DRIVER_FEED_FORWARD, 00, RobotMap.DRIVER_RAMP, 0);
+		backLeft.setPID(   RobotMap.DRIVER_P, RobotMap.DRIVER_I, RobotMap.DRIVER_D, RobotMap.DRIVER_FEED_FORWARD, 00, RobotMap.DRIVER_RAMP, 0);
+
 
 		drive = new RobotDrive( frontLeft, backLeft, frontRight, backRight );
 		
-		//drive.setSafetyEnabled(false);												//disable safety restrictions to boost performance
-		//System.out.println("chassis init");
-		lastTics = frontRight.getEncPosition();
-		lastTime = System.currentTimeMillis();
+		drive.setSafetyEnabled(false);												//disable safety restrictions to boost performance
+		
 	}
 
-	public void joystickDriveIterate() {
-//		double gyroAngle = Sensors.getGyroAngle();
-//		Joystick driverJoystick = Sensors.getDriverJoystick();
-//		drive.mecanumDrive_Polar(driverJoystick.getMagnitude(),
-//			driverJoystick.getDirectionDegrees(), gyroAngle);		
-//		//drive.mecanumDrive_Cartesian(.1, .1, 0, 0);
-//		//drive.arcadeDrive(driverJoystick);
-		
-		//frontRight.setPID( 0.25, 0.00050, 0); // , 00, 0, 0, 0); 
-		/*frontRight.changeControlMode(ControlMode.Speed);
-		frontRight.set(150);
-		
-		frontLeft.changeControlMode(ControlMode.Speed);
-		frontLeft.set(150);
-		
-		backRight.changeControlMode(ControlMode.Speed);
-		backRight.set(150);
-		
-		backLeft.changeControlMode(ControlMode.Speed);
-		backLeft.set(150);
-		double currentSpeed = frontRight.getSpeed();
-		if ( currentSpeed < minSpeed ) {
-			minSpeed = (int)currentSpeed;
-		}
-		else if ( currentSpeed > maxSpeed ) {
-			maxSpeed = (int)currentSpeed;
-		}
-		if ( ( counter++ % 200 ) == 0 ) {
-			maxSpeed = 0 ;
-			minSpeed = 1000;
-		}
-		long timeNow = System.currentTimeMillis();
-		long deltaT = timeNow - lastTime;
-		long ticsNow = frontRight.getEncPosition();
-		long deltaPosition = lastTics - ticsNow;
-		tickPer10ms =  (tickPer10ms * 9 + deltaPosition / deltaT *10)/10;
-		System.out.println( "frontRight encoder " + currentSpeed + " " + minSpeed + " " + maxSpeed + " " + frontRight.getSetpoint() + " " + (int) tickPer10ms);
-		lastTics = ticsNow;
-		lastTime = timeNow;*/
+	public void iterate() {
+
 		Joystick joystick = Sensors.getDriverJoystick();
 		//System.out.println("Joystick xy: " + joystick.getX()+", " + joystick.getY());
-		drive.setMaxOutput(1200);
-		//System.out.println(frontRight.getSetpoint());
 		
 		
-		drive.setSafetyEnabled(false);
+		drive.setMaxOutput( RobotMap.DRIVER_MAX_OUTPUT );			//1300 current number.... if debug put actual value to test
 		
-		drive.arcadeDrive(joystick);
 		
-		//drive(joystick.getX(), joystick.getY(), joystick.getTwist());
-		drive.mecanumDrive_Cartesian(joystick.getX(), joystick.getY(), joystick.getTwist(), Sensors.getGyroAngle());
-		
-		if(joystick.getRawButton(2) == true) {
+		if(joystick.getRawButton(2) == true) {				//reset gyro
 			Sensors.gyroReset();
 			System.out.println("Gyro Reset Succesfull");
 		}
-	}
-
-	public void drive(double x, double y, double rotation) {
+		
+		
+		if( joystick.getRawButton( 8 ) ) {
+			isMechanum = true;
+		}
+		if( joystick.getRawButton( 7 ) ) {
+			isMechanum = false;
+		}
+		
+		
+			
+		if( isMechanum ) {
+			drive.mecanumDrive_Cartesian(joystick.getX(), joystick.getY(), joystick.getTwist(), Sensors.getGyroAngle());
+		} else {
+			drive.arcadeDrive(joystick);
+		}
 	
-		drive.mecanumDrive_Cartesian(x, y, rotation, Sensors.getGyroAngle());
+		
 	}
 
-	@Override
-	public void iterate() {
-		joystickDriveIterate();		
-	}
+	
 
 	@Override
 	public void reset() {
