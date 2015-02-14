@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.CANTalon.ControlMode;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 
-public class Chassis extends Subsystem {
+public class Chassis implements Subsystem {
 	protected CANTalon frontRight;
 	protected CANTalon frontLeft;
 	protected CANTalon backRight;
@@ -50,36 +50,6 @@ public class Chassis extends Subsystem {
 		double D=0;
 		double feedforward=.001;
 		double ramp=360;
-		frontRight.setPID( P, I, D, feedforward, 100, ramp, 0); 
-		frontLeft.setPID(  P, I, D, feedforward, 100, ramp, 0); 
-		backRight.setPID(  P, I, D, feedforward, 100, ramp, 0); 
-		backLeft.setPID(   P, I, D, feedforward, 100, ramp, 0); 
-		
-//		frontRight.ClearIaccum();
-//		frontLeft.ClearIaccum();
-//		backRight.ClearIaccum();
-//		backLeft.ClearIaccum();
-		
-//		frontRight.setProfile(0);
-//		frontLeft.setProfile(0);
-//		backRight.setProfile(0);
-//		backLeft.setProfile(0);
-
-		drive = new RobotDrive( frontLeft, backLeft, frontRight, backRight );
-		
-		//drive.setSafetyEnabled(false);												//disable safety restrictions to boost performance
-		System.out.println("chassis init");
-		lastTics = frontRight.getEncPosition();
-		lastTime = System.currentTimeMillis();
-	}
-
-	public void joystickDrive() {
-//		double gyroAngle = Sensors.getGyroAngle();
-//		Joystick driverJoystick = Sensors.getDriverJoystick();
-//		drive.mecanumDrive_Polar(driverJoystick.getMagnitude(),
-//			driverJoystick.getDirectionDegrees(), gyroAngle);		
-//		//drive.mecanumDrive_Cartesian(.1, .1, 0, 0);
-//		//drive.arcadeDrive(driverJoystick);
 		frontRight.reverseOutput(false);
 		frontRight.reverseSensor(false);
 		frontLeft.reverseOutput(true);
@@ -94,6 +64,33 @@ public class Chassis extends Subsystem {
 		frontLeft.setPID( 0.25, 0.0020, 0, 0.10, 00, -30, 0);
 		backRight.setPID( 0.25, 0.0020, 0, 0.10, 00, -30, 0);
 		backLeft.setPID( 0.25, 0.0020, 0, 0.10, 00, -30, 0);
+		
+//		frontRight.ClearIaccum();
+//		frontLeft.ClearIaccum();
+//		backRight.ClearIaccum();
+//		backLeft.ClearIaccum();
+		
+//		frontRight.setProfile(0);
+//		frontLeft.setProfile(0);
+//		backRight.setProfile(0);
+//		backLeft.setProfile(0);
+
+		drive = new RobotDrive( frontLeft, backLeft, frontRight, backRight );
+		
+		//drive.setSafetyEnabled(false);												//disable safety restrictions to boost performance
+		//System.out.println("chassis init");
+		lastTics = frontRight.getEncPosition();
+		lastTime = System.currentTimeMillis();
+	}
+
+	public void joystickDriveIterate() {
+//		double gyroAngle = Sensors.getGyroAngle();
+//		Joystick driverJoystick = Sensors.getDriverJoystick();
+//		drive.mecanumDrive_Polar(driverJoystick.getMagnitude(),
+//			driverJoystick.getDirectionDegrees(), gyroAngle);		
+//		//drive.mecanumDrive_Cartesian(.1, .1, 0, 0);
+//		//drive.arcadeDrive(driverJoystick);
+		
 		//frontRight.setPID( 0.25, 0.00050, 0); // , 00, 0, 0, 0); 
 		/*frontRight.changeControlMode(ControlMode.Speed);
 		frontRight.set(150);
@@ -126,11 +123,18 @@ public class Chassis extends Subsystem {
 		lastTics = ticsNow;
 		lastTime = timeNow;*/
 		Joystick joystick = Sensors.getDriverJoystick();
-		System.out.println("Joystick xy: " + joystick.getX()+", " + joystick.getY());
-		drive.setMaxOutput(300);
-		System.out.println(frontRight.getSetpoint());
+		//System.out.println("Joystick xy: " + joystick.getX()+", " + joystick.getY());
+		drive.setMaxOutput(1200);
+		//System.out.println(frontRight.getSetpoint());
+		
+		
 		drive.setSafetyEnabled(false);
-		drive(joystick.getX(), joystick.getY(), joystick.getTwist());
+		
+		drive.arcadeDrive(joystick);
+		
+		//drive(joystick.getX(), joystick.getY(), joystick.getTwist());
+		drive.mecanumDrive_Cartesian(joystick.getX(), joystick.getY(), joystick.getTwist(), Sensors.getGyroAngle());
+		
 		if(joystick.getRawButton(2) == true) {
 			Sensors.gyroReset();
 			System.out.println("Gyro Reset Succesfull");
@@ -138,7 +142,19 @@ public class Chassis extends Subsystem {
 	}
 
 	public void drive(double x, double y, double rotation) {
-		drive.mecanumDrive_Cartesian(x*0.5, y*0.5, rotation, Sensors.getGyroAngle());
+	
+		drive.mecanumDrive_Cartesian(x, y, rotation, Sensors.getGyroAngle());
+	}
+
+	@Override
+	public void iterate() {
+		joystickDriveIterate();		
+	}
+
+	@Override
+	public void reset() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

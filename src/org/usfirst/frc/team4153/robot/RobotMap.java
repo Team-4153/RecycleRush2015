@@ -22,6 +22,7 @@ public abstract class RobotMap {
 	public static final int BACK_RIGHT_TALON = 1;
 	public static final int BACK_LEFT_TALON = 3;
 	public static final int LIFT_MOTOR = 6;
+	public static final int LIFT_MOTOR2 = 8;    	///!!!!!????? CHANGE
 	public static final int FORK_MOTOR = 7;
 	public static final int BRAKE_MOTOR = 5;
 

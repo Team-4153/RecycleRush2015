@@ -1,10 +1,12 @@
 package org.usfirst.frc.team4153.robot.subsystems;
 
-public abstract class Subsystem {
+public abstract interface Subsystem {
 	
-	public void init() {
-		
-	}
+	public abstract void init();
+	
+	public abstract void iterate();
+	
+	public abstract void reset();
 	
 	
 }
