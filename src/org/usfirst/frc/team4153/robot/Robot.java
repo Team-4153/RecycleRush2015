@@ -1,6 +1,9 @@
 package org.usfirst.frc.team4153.robot;
 
 
+import org.opencv.core.Mat;
+import org.opencv.highgui.Highgui;
+import org.opencv.highgui.VideoCapture;
 import org.usfirst.frc.team4153.robot.subsystems.Chassis;
 import org.usfirst.frc.team4153.robot.subsystems.Forklift;
 import org.usfirst.frc.team4153.util.Sensors;
@@ -18,9 +21,9 @@ import edu.wpi.first.wpilibj.vision.USBCamera;
  * directory.
  */
 public class Robot extends IterativeRobot {
-	
+
 	private static Robot robot;
-	
+
 	public static Robot getRobot () {
 		return robot;
 	}
@@ -34,7 +37,7 @@ public class Robot extends IterativeRobot {
 	{
 		System.load("/usr/local/lib/lib_OpenCV/java/libopencv_java2410.so");
 	}
-	
+
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
@@ -57,14 +60,11 @@ public class Robot extends IterativeRobot {
 		forklift = new Forklift();
 		forklift.init();
 
-		/*
-		usbCamera = new USBCamera("cam2");
-		usbCamera.openCamera();
-		CameraServer.getInstance().startAutomaticCapture(usbCamera);
-		*/
-		
-		manipulatorJoystick = new Joystick(RobotMap.MANIPULATOR_JOYSTICK);
+		//usbCamera = new USBCamera("cam1");
+		//usbCamera.openCamera();
+        //CameraServer.getInstance().startAutomaticCapture(usbCamera);
 
+		manipulatorJoystick = new Joystick(RobotMap.MANIPULATOR_JOYSTICK);
 
 	}
 
@@ -73,17 +73,18 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void disabledPeriodic() {
 		try {
-			//System.out.println ("Capturing Video");
-//			VideoCapture capture = new VideoCapture(1); // open the default camera
-//
-//			Mat fromCamera = new Mat();
-//			capture.retrieve(fromCamera);
-//
-//
-//			ByteBuffer imgbuf = ByteBuffer.wrap(new byte[fromCamera.cols()*fromCamera.rows()*(int)fromCamera.elemSize()]);
-//			Image frame = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_RGB, 0);        
-//			NIVision.imaqArrayToImage(frame, new RawData(imgbuf), fromCamera.cols(), fromCamera.rows());
-//			CameraServer.getInstance().setImage(frame);
+			System.out.println ("Capturing Video");
+			VideoCapture capture = new VideoCapture(1); // open the default camera
+
+			Mat fromCamera = new Mat();
+			capture.retrieve(fromCamera);
+
+			Highgui.imwrite("/var/local/natinst/www/images/" + "Test.jpg", fromCamera);
+
+			//			ByteBuffer imgbuf = ByteBuffer.wrap(new byte[fromCamera.cols()*fromCamera.rows()*(int)fromCamera.elemSize()]);
+			//			Image frame = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_RGB, 0);        
+			//			NIVision.imaqArrayToImage(frame, new RawData(imgbuf), fromCamera.cols(), fromCamera.rows());
+			//			CameraServer.getInstance().setImage(frame);
 		} catch ( Exception any ) {
 			any.printStackTrace();
 		}
@@ -128,7 +129,7 @@ public class Robot extends IterativeRobot {
 		sensors.reset();
 
 	}
-	
+
 	public Chassis getChassis() {
 		return chassis;
 	}
