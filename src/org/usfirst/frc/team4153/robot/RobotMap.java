@@ -38,11 +38,11 @@ public abstract class RobotMap {
 	public static final int DRIVER_RAMP = -30;
 	public static final double DRIVER_MAX_OUTPUT = 1300;			//not part of PID
 	
-	public static final double LIFT_MOTOR_P = 0.15;
-	public static final double LIFT_MOTOR_I = .001;
+	public static final double LIFT_MOTOR_P = 0.25;
+	public static final double LIFT_MOTOR_I = .00015;
 	public static final double LIFT_MOTOR_D = 0.0;
-	public static final double LIFT_MOTOR_FEED_FORWARD = .001;
-	public static final int LIFT_MOTOR_RAMP = 36;
+	public static final double LIFT_MOTOR_FEED_FORWARD = .000;
+	public static final int LIFT_MOTOR_RAMP = 0;
 	
 	public static final double BRAKE_MOTOR_P = 0.1;
 	public static final double BRAKE_MOTOR_I = 0.001;

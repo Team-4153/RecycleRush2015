@@ -35,12 +35,15 @@ public class Forklift implements Subsystem {
 		liftMotor.changeControlMode( CANTalon.ControlMode.Position);	
 		liftMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
 		liftMotor.setPosition(0);  
-		//liftMotor.setPID(RobotMap.LIFT_MOTOR_P, RobotMap.LIFT_MOTOR_I, RobotMap.LIFT_MOTOR_D, RobotMap.LIFT_MOTOR_FEED_FORWARD, 100, RobotMap.LIFT_MOTOR_RAMP, 0);   		//magical numbers...manual
+		
+		liftMotor.setPID(RobotMap.LIFT_MOTOR_P, RobotMap.LIFT_MOTOR_I, RobotMap.LIFT_MOTOR_D, RobotMap.LIFT_MOTOR_FEED_FORWARD, 0, RobotMap.LIFT_MOTOR_RAMP, 0);
 		liftMotor.setProfile(0);
 		liftMotor.ClearIaccum();
 		liftMotor.reverseSensor(true);
 		liftMotor.reverseOutput( false );
-		liftMotor.enableBrakeMode(true);
+		liftMotor.enableBrakeMode( true );
+		liftMotor.setReverseSoftLimit( 100 );
+		liftMotor.setForwardSoftLimit(7000); 			/// TODO Check and change
 		
 
 		liftMotor2 = new CANTalon( RobotMap.LIFT_MOTOR2);
@@ -57,8 +60,9 @@ public class Forklift implements Subsystem {
 		
 		counter = 0;
 		currentTime = System.currentTimeMillis();
+		
 
-		//calibrate();			//taken out temporarily
+		calibrate();			//taken out temporarily
 	}
 
 	public void reset() {
@@ -82,21 +86,28 @@ public class Forklift implements Subsystem {
 	private class CalibrateThread extends Thread {
 		public void run() {
 			try {
+				liftMotor.enableReverseSoftLimit(false);
 				liftMotor.changeControlMode(CANTalon.ControlMode.PercentVbus);
 				int counter = 500;
 				while (counter-- > 0 && !liftMotor.isRevLimitSwitchClosed()) {
 					liftMotor.set(-0.1);
+					System.out.println("Calibrating");
 					try {
 						sleep(10);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
+				
+				
+			} finally {
 				liftMotor.set(0);
 				liftMotor.changeControlMode(CANTalon.ControlMode.Position);
 				liftMotor.setPosition(0);
-			} finally {
+				
 				calibrateThread = null;
+				liftMotor.enableReverseSoftLimit(true);
+				System.out.println( "Finished Calibrating" );
 			}
 		}
 	}
@@ -115,11 +126,13 @@ public class Forklift implements Subsystem {
 	public void iterateLift() {
 
 		//boolean buttonIsPressed = SmartDashboard.getBoolean("PresetButtonPressed");
-		double desired;
+		
 		double currentJoystick;
 		double currentMotor;
-		
 
+		double desired = 0;
+		
+		
 
 
 		/*																						//actual code to be used
@@ -153,10 +166,11 @@ public class Forklift implements Subsystem {
 		//			liftMotor.disableControl();
 		//		}
 
-		currentJoystick = Robot.getRobot().getManipulatorJoystick().getY();
-		currentMotor = liftMotor.getPosition();
+		
 		
 
+		/*
+		  
 		if( Math.abs( currentJoystick ) > 0.2 ) {
 			//int change = (( currentJoystick > 0.0 ) ? 350 : -350 );		// min position should be zero.... max position should be 7810
 			//desired = ( currentMotor + change );		
@@ -164,9 +178,9 @@ public class Forklift implements Subsystem {
 			
 			
 			if( currentJoystick > 0.0 ) {
-				desired = currentMotor + 350;
+				desired = currentMotor + 700;
 			} else {
-				desired = currentMotor - 350;
+				desired = currentMotor - 700;
 			}
 			
 			liftMotor.enableControl();
@@ -195,6 +209,36 @@ public class Forklift implements Subsystem {
 				System.out.println( "...2...Current Motor: " + currentMotor + "    Desired: " + desired + "      Current Joystick: " + currentJoystick );
 			}
 		}
+		
+		*/
+		
+		currentJoystick = Robot.getRobot().getManipulatorJoystick().getY();
+		currentMotor = liftMotor.getPosition();
+	//=================================================================================	TEST CODE TODO
+		
+		desired = currentMotor;
+		if( Robot.getRobot().getManipulatorJoystick().getRawButton( 7 ) ) {
+			desired = 2000;
+		}
+		if( Robot.getRobot().getManipulatorJoystick().getRawButton( 6 ) ) {
+			desired = 4000;
+		}
+		
+		
+		moveToPosition( desired );
+	
+		
+		if( Math.abs( liftMotor.getPosition() - desired ) < 25 ) {
+			applyBrake( true );
+		} else {
+			applyBrake( false );
+		}
+		
+		
+		//System.out.println("Target position: " + desired+", actual position: "+liftMotor.getPosition());
+
+		
+	//================================================================================
 
 
 
@@ -235,6 +279,10 @@ public class Forklift implements Subsystem {
 //		}
 		 
 
+	}
+	
+	private void moveToPosition( double desired ) {
+		liftMotor.set( desired );
 	}
 
 

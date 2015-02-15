@@ -81,7 +81,7 @@ public class Robot extends IterativeRobot {
 		
 ////////////////////////////////////
 		try {
-			System.out.println ("Capturing Video");
+			//System.out.println ("Capturing Video");
 			VideoCapture capture = new VideoCapture(1); // open the default camera
 
 			Mat fromCamera = new Mat();
@@ -112,9 +112,9 @@ public class Robot extends IterativeRobot {
 	 * This function is called periodically during operator control
 	 */
 	public void teleopPeriodic() {
-		//chassis.iterate();	
+		chassis.iterate();	
 		forklift.iterate();
-		//forkgrabber.iterate();
+		forkgrabber.iterate();
 
 
 
