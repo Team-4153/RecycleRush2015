@@ -6,7 +6,10 @@ import edu.wpi.first.wpilibj.CANTalon;
 
 public class Forklift implements Subsystem {
 
-	private CANTalon liftMotor, liftMotor2, forkMotor, brakeMotor;
+	private CANTalon liftMotor;
+	private CANTalon liftMotor2;
+	private CANTalon forkMotor;
+	private CANTalon brakeMotor;
 
 	//Difference between lift motor position and desired position (in encoder value) that is considered "close enough" to the desired position
 	private final int BRAKE_TOLERANCE = 3; //Set later
@@ -15,7 +18,7 @@ public class Forklift implements Subsystem {
 	/** 
 	 * when this is true, the motor will calibrate on the next loop
 	 */
-	protected boolean needsReset = false;
+	//protected boolean needsReset = false;
 
 	/** Calibration thread.  Null unless calibrating. */
 	protected CalibrateThread calibrateThread;
@@ -30,7 +33,7 @@ public class Forklift implements Subsystem {
 		liftMotor.changeControlMode( CANTalon.ControlMode.Position);	
 		liftMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
 		liftMotor.setPosition(0);  
-		liftMotor.setPID(RobotMap.LIFT_MOTOR_P, RobotMap.LIFT_MOTOR_I, RobotMap.LIFT_MOTOR_D, RobotMap.LIFT_MOTOR_FEED_FORWARD, 100, RobotMap.LIFT_MOTOR_RAMP, 0);   		//magical numbers...manual
+		//liftMotor.setPID(RobotMap.LIFT_MOTOR_P, RobotMap.LIFT_MOTOR_I, RobotMap.LIFT_MOTOR_D, RobotMap.LIFT_MOTOR_FEED_FORWARD, 100, RobotMap.LIFT_MOTOR_RAMP, 0);   		//magical numbers...manual
 		liftMotor.setProfile(0);
 		liftMotor.ClearIaccum();
 		liftMotor.reverseSensor(true);
@@ -49,7 +52,7 @@ public class Forklift implements Subsystem {
 		brakeMotor.setProfile(0);
 		brakeMotor.ClearIaccum();
 
-		calibrate();
+		//calibrate();			//taken out temporarily
 	}
 
 	public void reset() {
@@ -57,18 +60,13 @@ public class Forklift implements Subsystem {
 		forkMotor.setPosition(0.0);
 	}
 
-	
-	public void moveLift(double position) {
-		//if (!isCalibrating) {
-			liftMotor.set(position);
-		//}
-	}
 
 	/** 
 	 * Resets the lift motor to the lowest position and sets that as 0
 	 */
 	public void calibrate() {
 		if (calibrateThread == null ) {
+			applyBrake( false );
 			calibrateThread = new CalibrateThread();
 			calibrateThread.start();
 		}
@@ -79,7 +77,8 @@ public class Forklift implements Subsystem {
 		public void run() {
 			try {
 				liftMotor.changeControlMode(CANTalon.ControlMode.PercentVbus);
-				while (!liftMotor.isRevLimitSwitchClosed()) {
+				int counter = 500;
+				while (counter-- > 0 && !liftMotor.isRevLimitSwitchClosed()) {
 					liftMotor.set(-0.1);
 					try {
 						sleep(10);
@@ -92,28 +91,36 @@ public class Forklift implements Subsystem {
 				liftMotor.setPosition(0);
 			} finally {
 				calibrateThread = null;
-				needsReset = false;
 			}
 		}
 	}
 
-	
+
 	public void iterate() {
-		
-		//boolean buttonIsPressed = SmartDashboard.getBoolean("PresetButtonPressed");
-		double desired;
-		double current;
-		
 		if( Robot.getRobot().getManipulatorJoystick().getRawButton( 3 ) == true ) {
-			needsReset = true;
-		}
-		
-		if (needsReset) {
 			calibrate();
 		}
 		
-		
-		
+		if( Robot.getRobot().getManipulatorJoystick().getRawButton( 4 ) ) {
+			brakeMotor.set( 0.3 );
+		} else if ( Robot.getRobot().getManipulatorJoystick().getRawButton( 5 ) ) {
+			brakeMotor.set( -0.3 );
+		} else if (calibrateThread == null) {
+			iterateLift();
+		}
+
+	}
+	
+	/** run the lifting code */
+	public void iterateLift() {
+
+		//boolean buttonIsPressed = SmartDashboard.getBoolean("PresetButtonPressed");
+		double desired;
+		double currentJoystick;
+		double currentMotor;
+
+
+
 		/*																						//actual code to be used
 		if( Math.abs(manipulatorJoystick.getY()) < 0.05 ) {
 			if( buttonIsPressed ) {
@@ -131,57 +138,82 @@ public class Forklift implements Subsystem {
 
 		//desired = ( manipulatorJoystick.getY() * RobotMap.CLICKS_PER_ROTATION * 3 ) + liftMotor.getPosition();  //test code 
 		//desired = ( Robot.getRobot().getManipulatorJoystick().getY() * 200 ) + liftMotor.getPosition();  //test code
-		
-		current = Robot.getRobot().getManipulatorJoystick().getY();
-		
-		if( Math.abs( current ) > 0.1 ) {
-			desired = ( current > 0.0 ) ? 50 : 7770;		// min position should be zero.... max position should be 7810
-			liftMotor.enableControl();
-			iterateBrakeMotor( false );
-			moveLift( desired );
+
+
+
+		//		if( Math.abs( current ) > 0.1 ) {
+		//			desired = ( current > 0.0 ) ? 7770 : 50;		// min position should be zero.... max position should be 7810
+		//			liftMotor.enableControl();
+		//			iterateBrakeMotor( false );
+		//			moveLift( desired );
+		//		} else {
+		//			desired = current;
+		//			iterateBrakeMotor( true );
+		//			liftMotor.disableControl();
+		//		}
+
+		currentJoystick = Robot.getRobot().getManipulatorJoystick().getY();
+		currentMotor = liftMotor.getPosition();
+
+		if( Math.abs( currentJoystick ) > 0.2 ) {
+			int change = (( currentJoystick > 0.0 ) ? 350 : -350 );		// min position should be zero.... max position should be 7810
+			desired = ( currentMotor + change );		
+			//liftMotor.enableControl();
+			applyBrake( false );
+			liftMotor.set(desired);
+			System.out.println( "...1...Current Motor: " + currentMotor + "    Desired: " + desired + "      Current Joystick: " + currentJoystick );
+
 		} else {
-			desired = current;
-			iterateBrakeMotor( true );
-			liftMotor.disableControl();
+			desired = currentMotor;
+			applyBrake( true );
+			liftMotor.set(desired);
+			liftMotor.ClearIaccum();
+			//liftMotor.disableControl();
+			System.out.println( "...2...Current Motor: " + currentMotor + "    Desired: " + desired + "      Current Joystick: " + currentJoystick );
 		}
 
+
+
+
 		//System.out.println( "Wanted Value: " + desired + "\t    Lift motor position: " + liftMotor.getPosition() );
-		
-		
-		
-		
-//		public static final double LIFT_MOTOR_P = 1.0;
-//		public static final double LIFT_MOTOR_I = .001;
-//		public static final double LIFT_MOTOR_D = 1.0;
-//		public static final double LIFT_MOTOR_FEED_FORWARD = .001;
-//		public static final int LIFT_MOTOR_RAMP = 36;
 
-		liftMotor.setPID( 0.5, 0.001, 0.0, 0.001, 0, 36, 0 ); ////!!!!!!!!!!!!!!!!!!! IMPORTANT.... 
 
+
+
+		//		public static final double LIFT_MOTOR_P = 1.0;
+		//		public static final double LIFT_MOTOR_I = .001;
+		//		public static final double LIFT_MOTOR_D = 1.0;
+		//		public static final double LIFT_MOTOR_FEED_FORWARD = .001;
+		//		public static final int LIFT_MOTOR_RAMP = 36;
+
+		liftMotor.setPID( 0.15, 0.001, 0.0 ); //    //!!!!!!!!!!!!!!!!!!! IMPORTANT.... 
+
+
+		//liftMotor.setPID( 0.5, 0.001, 0.0, 0.001, 0, 36, 0 );   //just reference
 	}
 
 
-	public void iterateBrakeMotor( boolean brakeBoolean) {
+	private void applyBrake( boolean brakeBoolean) {
+
+//		if ( brakeBoolean ) {
+//			brakeMotor.set(-0.3);
+//		}
+//		else {
+//			brakeMotor.set(0.3);
+//		}
+
+
 		
-		if ( brakeBoolean ) {
-			brakeMotor.set(0.3);
-		}
-		else {
-			brakeMotor.set(-0.3);
-		}
-		
-		
-		/*
 		if( Robot.getRobot().getManipulatorJoystick().getRawButton( 4 ) ) {
 			brakeMotor.set( 0.3 );
 		} 
 		if( Robot.getRobot().getManipulatorJoystick().getRawButton( 5 ) ) {
 			brakeMotor.set( -0.3 );
 		}
-		*/
-		
+		 
+
 	}
-	
-	
+
+
 
 }

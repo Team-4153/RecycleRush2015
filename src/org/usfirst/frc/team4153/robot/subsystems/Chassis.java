@@ -13,18 +13,17 @@ public class Chassis implements Subsystem {
 	protected CANTalon frontLeft;
 	protected CANTalon backRight;
 	protected CANTalon backLeft;
-	
+
 	protected RobotDrive drive;
-	
-	private boolean isMechanum = true;	
-	
+
+	private boolean isMechanum = true;
 
 	public void init() {
 		frontRight = new CANTalon(RobotMap.FRONT_RIGHT_TALON, 1);
 		frontLeft = new CANTalon(RobotMap.FRONT_LEFT_TALON);
 		backRight = new CANTalon(RobotMap.BACK_RIGHT_TALON);
 		backLeft = new CANTalon(RobotMap.BACK_LEFT_TALON);
-		
+
 		frontRight.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
 		frontLeft.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
 		backRight.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
@@ -34,8 +33,7 @@ public class Chassis implements Subsystem {
 		frontLeft.changeControlMode(CANTalon.ControlMode.Speed);
 		backRight.changeControlMode(CANTalon.ControlMode.Speed);
 		backLeft.changeControlMode(CANTalon.ControlMode.Speed);
-	
-		
+
 		frontRight.reverseOutput(false);
 		frontRight.reverseSensor(false);
 		frontLeft.reverseOutput(true);
@@ -44,18 +42,25 @@ public class Chassis implements Subsystem {
 		backRight.reverseSensor(false);
 		backLeft.reverseOutput(false);
 		backLeft.reverseSensor(true);
-		
-		
-		frontRight.setPID( RobotMap.DRIVER_P, RobotMap.DRIVER_I, RobotMap.DRIVER_D, RobotMap.DRIVER_FEED_FORWARD, 00, RobotMap.DRIVER_RAMP, 0);
-		frontLeft.setPID(  RobotMap.DRIVER_P, RobotMap.DRIVER_I, RobotMap.DRIVER_D, RobotMap.DRIVER_FEED_FORWARD, 00, RobotMap.DRIVER_RAMP, 0);
-		backRight.setPID(  RobotMap.DRIVER_P, RobotMap.DRIVER_I, RobotMap.DRIVER_D, RobotMap.DRIVER_FEED_FORWARD, 00, RobotMap.DRIVER_RAMP, 0);
-		backLeft.setPID(   RobotMap.DRIVER_P, RobotMap.DRIVER_I, RobotMap.DRIVER_D, RobotMap.DRIVER_FEED_FORWARD, 00, RobotMap.DRIVER_RAMP, 0);
 
+		frontRight.setPID(RobotMap.DRIVER_P, RobotMap.DRIVER_I,
+				RobotMap.DRIVER_D, RobotMap.DRIVER_FEED_FORWARD, 00,
+				RobotMap.DRIVER_RAMP, 0);
+		frontLeft.setPID(RobotMap.DRIVER_P, RobotMap.DRIVER_I,
+				RobotMap.DRIVER_D, RobotMap.DRIVER_FEED_FORWARD, 00,
+				RobotMap.DRIVER_RAMP, 0);
+		backRight.setPID(RobotMap.DRIVER_P, RobotMap.DRIVER_I,
+				RobotMap.DRIVER_D, RobotMap.DRIVER_FEED_FORWARD, 00,
+				RobotMap.DRIVER_RAMP, 0);
+		backLeft.setPID(RobotMap.DRIVER_P, RobotMap.DRIVER_I,
+				RobotMap.DRIVER_D, RobotMap.DRIVER_FEED_FORWARD, 00,
+				RobotMap.DRIVER_RAMP, 0);
 
-		drive = new RobotDrive( frontLeft, backLeft, frontRight, backRight );
-		
-		drive.setSafetyEnabled(false);												//disable safety restrictions to boost performance
-		
+		drive = new RobotDrive(frontLeft, backLeft, frontRight, backRight);
+
+		drive.setSafetyEnabled(false); // disable safety restrictions to boost
+										// performance
+
 	}
 
 	public void iterate() {
@@ -67,11 +72,13 @@ public class Chassis implements Subsystem {
 		drive.setMaxOutput( RobotMap.DRIVER_MAX_OUTPUT );			//1300 current number.... if debug put actual value to test
 		
 		
-		if(joystick.getRawButton(2) == true) {				//reset gyro
+		if(joystick.getRawButton(2) == true) {				// check if the gyro needs reseting
 			Sensors.gyroReset();
 			System.out.println("Gyro Reset Succesfull");
 		}
 		
+
+//////////////////////////////////////////// check for mechanum
 		
 		if( joystick.getRawButton( 8 ) ) {
 			isMechanum = true;
@@ -80,23 +87,26 @@ public class Chassis implements Subsystem {
 			isMechanum = false;
 		}
 		
+////////////////////////////////////////////
 		
-			
-		if( isMechanum ) {
-			drive.mecanumDrive_Cartesian(joystick.getX(), joystick.getY(), joystick.getTwist(), Sensors.getGyroAngle());
-		} else {
-			drive.arcadeDrive(joystick);
+		if( joystick.getX() >= RobotMap.DRIVER_JOYSTICK_TOLERANCE || joystick.getY() >= RobotMap.DRIVER_JOYSTICK_TOLERANCE)  {  		//
+			if( isMechanum ) {
+				//drive.mecanumDrive_Cartesian(joystick.getX(), joystick.getY(), joystick.getTwist(), Sensors.getGyroAngle());
+			} else {
+				//drive.arcadeDrive(joystick);
+			}
+
 		}
+		
+		System.out.println( joystick.getZ() );
 	
 		
 	}
 
-	
-
 	@Override
 	public void reset() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }
