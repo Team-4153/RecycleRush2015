@@ -5,6 +5,7 @@ import org.opencv.core.Mat;
 import org.opencv.highgui.Highgui;
 import org.opencv.highgui.VideoCapture;
 import org.usfirst.frc.team4153.robot.subsystems.Chassis;
+import org.usfirst.frc.team4153.robot.subsystems.ForkGrabber;
 import org.usfirst.frc.team4153.robot.subsystems.Forklift;
 import org.usfirst.frc.team4153.util.Sensors;
 
@@ -30,6 +31,7 @@ public class Robot extends IterativeRobot {
 
 	Chassis chassis;
 	Forklift forklift;
+	ForkGrabber forkgrabber;
 	Sensors sensors;
 	USBCamera usbCamera;
 	Joystick manipulatorJoystick;
@@ -53,12 +55,16 @@ public class Robot extends IterativeRobot {
 		//Joystick driveStick = new Joystick(RobotMap.DRIVER_JOYSTICK);
 
 		sensors = new Sensors();
+		sensors.init();
 
 		chassis = new Chassis();
 		chassis.init();
 
 		forklift = new Forklift();
 		forklift.init();
+		
+		forkgrabber = new ForkGrabber();
+		forkgrabber.init();
 
 		//usbCamera = new USBCamera("cam1");
 		//usbCamera.openCamera();
@@ -72,6 +78,9 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void disabledPeriodic() {
+		
+		
+////////////////////////////////////
 		try {
 			System.out.println ("Capturing Video");
 			VideoCapture capture = new VideoCapture(1); // open the default camera
@@ -88,6 +97,8 @@ public class Robot extends IterativeRobot {
 		} catch ( Exception any ) {
 			any.printStackTrace();
 		}
+		
+//////////////////////////////
 	}
 
 
@@ -102,9 +113,9 @@ public class Robot extends IterativeRobot {
 	 * This function is called periodically during operator control
 	 */
 	public void teleopPeriodic() {
-		chassis.iterate();	
-
+		//chassis.iterate();	
 		forklift.iterate();
+		//forkgrabber.iterate();
 
 
 
@@ -114,7 +125,7 @@ public class Robot extends IterativeRobot {
 	 * This function is called periodically during test mode
 	 */
 
-	public void testPeriodic() {
+	public void testPeriodic() {					//code to have
 
 		boolean tempb = SmartDashboard.getBoolean("dashButton1");
 		System.out.println(tempb);

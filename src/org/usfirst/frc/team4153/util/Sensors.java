@@ -21,36 +21,29 @@ public class Sensors implements Subsystem {
 		// I'll leave it here as a warning but it should not be used
 		
 	}
-	 
-	public static Encoder getEncoder() {
-		if (encoder == null) {
-			encoder = new Encoder( RobotMap.ENCODER1, RobotMap.ENCODER0);
-		}
-		return encoder;
+	
+	 @Override
+	public void init() {
+		 driverJoystick = new Joystick( RobotMap.DRIVER_JOYSTICK);
+		 
+		 gyro = new Gyro( RobotMap.GYRO);							//if an object is constructed
+		 gyro.reset();
+		 System.out.println("Gyro Initalized");
 	}
 
+	 
+	
 	public static Joystick getDriverJoystick() {
-		if (driverJoystick == null) {
-			driverJoystick = new Joystick( RobotMap.DRIVER_JOYSTICK);
-		}
 		return driverJoystick;
 	}
 	
 	public static Gyro getGyro() {
-		if (gyro == null) {
-			gyro = new Gyro( RobotMap.GYRO);							//if an object is constructed
-			gyro.reset();
-			System.out.println("Gyro Initalized");
-		}
 		return gyro;
 	}
 	
 	
 
 	public static double getGyroAngle() {
-		
-		Joystick driverJoystick = Sensors.getDriverJoystick();
-
 		if( driverJoystick.getRawButton(2) ) {
 			gyro.reset();
 		}
@@ -69,15 +62,12 @@ public class Sensors implements Subsystem {
 		gyro.reset();
 	}
 
-	@Override
-	public void init() {
-		// TODO Auto-generated method stub
-		
-	}
+	
 
 	@Override
 	public void iterate() {
 		// TODO Auto-generated method stub
+		//dont do any thing here
 		
 	}
 	
