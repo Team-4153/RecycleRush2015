@@ -78,7 +78,7 @@ public class Chassis implements Subsystem {
 		}
 		
 
-//////////////////////////////////////////// check for mechanum
+//---------------------------------------check for mechanum
 		
 		if( joystick.getRawButton( 8 ) ) {
 			isMechanum = true;
@@ -87,18 +87,27 @@ public class Chassis implements Subsystem {
 			isMechanum = false;
 		}
 		
-////////////////////////////////////////////
+//================================================
 		
-		if( joystick.getX() >= RobotMap.DRIVER_JOYSTICK_TOLERANCE || joystick.getY() >= RobotMap.DRIVER_JOYSTICK_TOLERANCE)  {  		//
+		if( Math.abs(joystick.getX() ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE || 
+				Math.abs( joystick.getY() ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE || 
+				Math.abs( joystick.getZ() ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE )  {  		//all values have a range from -1 to 1
 			if( isMechanum ) {
-				//drive.mecanumDrive_Cartesian(joystick.getX(), joystick.getY(), joystick.getTwist(), Sensors.getGyroAngle());
+				drive.mecanumDrive_Cartesian(joystick.getX(), joystick.getY(), joystick.getTwist(), Sensors.getGyroAngle());
 			} else {
-				//drive.arcadeDrive(joystick);
+				drive.arcadeDrive(joystick);
 			}
-
+		
+		//System.out.println( "Drive Joystick... X: " + joystick.getX() + "   Y: " + joystick.getY() + "  Z: " + joystick.getZ() );
+		} else {
+			
+			if( isMechanum ) {
+				drive.mecanumDrive_Cartesian( 0.0 , 0.0, 0.0, 0.0 );
+			} else {
+				drive.arcadeDrive(joystick);
+			}
 		}
 		
-		System.out.println( joystick.getZ() );
 	
 		
 	}

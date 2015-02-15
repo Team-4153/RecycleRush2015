@@ -13,6 +13,8 @@ public class Forklift implements Subsystem {
 
 	//Difference between lift motor position and desired position (in encoder value) that is considered "close enough" to the desired position
 	private final int BRAKE_TOLERANCE = 3; //Set later
+	private long counter = 0;
+	private long currentTime;
 
 
 	/** 
@@ -39,6 +41,7 @@ public class Forklift implements Subsystem {
 		liftMotor.reverseSensor(true);
 		liftMotor.reverseOutput( false );
 		liftMotor.enableBrakeMode(true);
+		
 
 		liftMotor2 = new CANTalon( RobotMap.LIFT_MOTOR2);
 		liftMotor2.changeControlMode(CANTalon.ControlMode.Follower);
@@ -51,6 +54,9 @@ public class Forklift implements Subsystem {
 		brakeMotor.setPID(RobotMap.BRAKE_MOTOR_P, RobotMap.BRAKE_MOTOR_I, RobotMap.BRAKE_MOTOR_D, RobotMap.BRAKE_MOTOR_FEED_FORWARD, 100, RobotMap.BRAKE_MOTOR_RAMP, 0);
 		brakeMotor.setProfile(0);
 		brakeMotor.ClearIaccum();
+		
+		counter = 0;
+		currentTime = System.currentTimeMillis();
 
 		//calibrate();			//taken out temporarily
 	}
@@ -99,12 +105,6 @@ public class Forklift implements Subsystem {
 	public void iterate() {
 		if( Robot.getRobot().getManipulatorJoystick().getRawButton( 3 ) == true ) {
 			calibrate();
-		}
-		
-		if( Robot.getRobot().getManipulatorJoystick().getRawButton( 4 ) ) {
-			brakeMotor.set( 0.3 );
-		} else if ( Robot.getRobot().getManipulatorJoystick().getRawButton( 5 ) ) {
-			brakeMotor.set( -0.3 );
 		} else if (calibrateThread == null) {
 			iterateLift();
 		}
@@ -118,6 +118,7 @@ public class Forklift implements Subsystem {
 		double desired;
 		double currentJoystick;
 		double currentMotor;
+		
 
 
 
@@ -154,22 +155,45 @@ public class Forklift implements Subsystem {
 
 		currentJoystick = Robot.getRobot().getManipulatorJoystick().getY();
 		currentMotor = liftMotor.getPosition();
+		
 
 		if( Math.abs( currentJoystick ) > 0.2 ) {
-			int change = (( currentJoystick > 0.0 ) ? 350 : -350 );		// min position should be zero.... max position should be 7810
-			desired = ( currentMotor + change );		
-			//liftMotor.enableControl();
+			//int change = (( currentJoystick > 0.0 ) ? 350 : -350 );		// min position should be zero.... max position should be 7810
+			//desired = ( currentMotor + change );		
+			
+			
+			
+			if( currentJoystick > 0.0 ) {
+				desired = currentMotor + 350;
+			} else {
+				desired = currentMotor - 350;
+			}
+			
+			liftMotor.enableControl();
 			applyBrake( false );
 			liftMotor.set(desired);
-			System.out.println( "...1...Current Motor: " + currentMotor + "    Desired: " + desired + "      Current Joystick: " + currentJoystick );
+			
+			if( counter % 2000 == 0 ) {
+				System.out.println( "...1...Current Motor: " + currentMotor + "    Desired: " + desired + "      Current Joystick: " + currentJoystick );
+			}
+			
+			currentTime = System.currentTimeMillis();
 
 		} else {
+			
+		
+			if( System.currentTimeMillis() - currentTime > 1500 ) {
+				liftMotor.disableControl();
+			}
 			desired = currentMotor;
 			applyBrake( true );
 			liftMotor.set(desired);
 			liftMotor.ClearIaccum();
 			//liftMotor.disableControl();
-			System.out.println( "...2...Current Motor: " + currentMotor + "    Desired: " + desired + "      Current Joystick: " + currentJoystick );
+			
+			if( counter % 2000 == 0 ) {
+				System.out.println( "...2...Current Motor: " + currentMotor + "    Desired: " + desired + "      Current Joystick: " + currentJoystick );
+			}
 		}
 
 
@@ -186,30 +210,29 @@ public class Forklift implements Subsystem {
 		//		public static final double LIFT_MOTOR_FEED_FORWARD = .001;
 		//		public static final int LIFT_MOTOR_RAMP = 36;
 
-		liftMotor.setPID( 0.15, 0.001, 0.0 ); //    //!!!!!!!!!!!!!!!!!!! IMPORTANT.... 
+		
 
 
-		//liftMotor.setPID( 0.5, 0.001, 0.0, 0.001, 0, 36, 0 );   //just reference
 	}
 
 
 	private void applyBrake( boolean brakeBoolean) {
 
-//		if ( brakeBoolean ) {
-//			brakeMotor.set(-0.3);
-//		}
-//		else {
-//			brakeMotor.set(0.3);
-//		}
+		if ( brakeBoolean ) {
+			brakeMotor.set(-0.3);
+		}
+		else {
+			brakeMotor.set(0.3);
+		}
 
 
 		
-		if( Robot.getRobot().getManipulatorJoystick().getRawButton( 4 ) ) {
-			brakeMotor.set( 0.3 );
-		} 
-		if( Robot.getRobot().getManipulatorJoystick().getRawButton( 5 ) ) {
-			brakeMotor.set( -0.3 );
-		}
+//		if( Robot.getRobot().getManipulatorJoystick().getRawButton( 4 ) ) {
+//			brakeMotor.set( 0.4 );
+//		} 
+//		if( Robot.getRobot().getManipulatorJoystick().getRawButton( 5 ) ) {
+//			brakeMotor.set( -0.4 );
+//		}
 		 
 
 	}
