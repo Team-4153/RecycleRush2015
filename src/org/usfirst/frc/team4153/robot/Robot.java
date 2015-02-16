@@ -1,11 +1,12 @@
 package org.usfirst.frc.team4153.robot;
 
 
+import java.io.File;
+
 import org.opencv.core.Mat;
 import org.opencv.highgui.Highgui;
 import org.opencv.highgui.VideoCapture;
 import org.usfirst.frc.team4153.robot.subsystems.Chassis;
-import org.usfirst.frc.team4153.robot.subsystems.ForkGrabber;
 import org.usfirst.frc.team4153.robot.subsystems.Forklift;
 import org.usfirst.frc.team4153.util.Sensors;
 
@@ -30,12 +31,13 @@ public class Robot extends IterativeRobot {
 
 	Chassis chassis;
 	Forklift forklift;
-	ForkGrabber forkgrabber;
 	Sensors sensors;
 	USBCamera usbCamera;
 	Joystick manipulatorJoystick;
+	VideoCapture capture; 
+	int lastOpenedCamera = 0;
 
-	{
+	static {
 		System.load("/usr/local/lib/lib_OpenCV/java/libopencv_java2410.so");
 	}
 
@@ -61,43 +63,53 @@ public class Robot extends IterativeRobot {
 
 		forklift = new Forklift();
 		forklift.init();
-		
-		forkgrabber = new ForkGrabber();
-		forkgrabber.init();
+
 
 		//usbCamera = new USBCamera("cam1");
 		//usbCamera.openCamera();
-        //CameraServer.getInstance().startAutomaticCapture(usbCamera);
+		//CameraServer.getInstance().startAutomaticCapture(usbCamera);
 
 		manipulatorJoystick = new Joystick(RobotMap.MANIPULATOR_JOYSTICK);
 
+		// create a new video capture object.
+		capture = new VideoCapture();
+		//capture.open(0, 640, 480, 1);
+		// open the camera.   If you plug/unplug cameras the device number (the first parameter)
+		// may change.  Zero and one seem popular.
+		// If you putty in you can check:
+		// ls -al /dev/video*
+		// and the number SHOULD correspond to the last digit 
+		// (ie /dev/video0 should be zero and /dev/video1 should be one)
+		// I would assume that it's possible to put more cameras on the rio (usb hub required)
+		// and so read 2,3,4,5...
+		capture.open(1, 640, 480, 10);
+
 	}
-
-
 
 	@Override
 	public void disabledPeriodic() {
-		
-		
-////////////////////////////////////
-		try {
-			//System.out.println ("Capturing Video");
-			VideoCapture capture = new VideoCapture(1); // open the default camera
 
-			Mat fromCamera = new Mat();
-			capture.retrieve(fromCamera);
+		saveJpg();
 
-			Highgui.imwrite("/var/local/natinst/www/images/" + "Test.jpg", fromCamera);
+		////////////////////////////////////
+		//		try {
+		//			//System.out.println ("Capturing Video");
+		//			VideoCapture capture = new VideoCapture(1); // open the default camera
+		//
+		//			Mat fromCamera = new Mat();
+		//			capture.retrieve(fromCamera);
+		//
+		//			Highgui.imwrite("/var/local/natinst/www/images/" + "Test.jpg", fromCamera);
+		//
+		//			//			ByteBuffer imgbuf = ByteBuffer.wrap(new byte[fromCamera.cols()*fromCamera.rows()*(int)fromCamera.elemSize()]);
+		//			//			Image frame = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_RGB, 0);        
+		//			//			NIVision.imaqArrayToImage(frame, new RawData(imgbuf), fromCamera.cols(), fromCamera.rows());
+		//			//			CameraServer.getInstance().setImage(frame);
+		//		} catch ( Exception any ) {
+		//			any.printStackTrace();
+		//		}
 
-			//			ByteBuffer imgbuf = ByteBuffer.wrap(new byte[fromCamera.cols()*fromCamera.rows()*(int)fromCamera.elemSize()]);
-			//			Image frame = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_RGB, 0);        
-			//			NIVision.imaqArrayToImage(frame, new RawData(imgbuf), fromCamera.cols(), fromCamera.rows());
-			//			CameraServer.getInstance().setImage(frame);
-		} catch ( Exception any ) {
-			any.printStackTrace();
-		}
-		
-//////////////////////////////
+		//////////////////////////////
 	}
 
 
@@ -114,10 +126,65 @@ public class Robot extends IterativeRobot {
 	public void teleopPeriodic() {
 		chassis.iterate();	
 		forklift.iterate();
-		forkgrabber.iterate();
 
 
 
+
+	}
+
+	/** Read an image from the USB camera to a JPG on the disk. */
+	public void saveJpg () {
+		Mat fromCamera = new Mat();
+		try {
+//			if ( capture == null ) {
+//				//System.out.println ("Capturing Video");
+//				//VideoCapture capture; // open the default camera
+//				// open the default camera
+////				for ( int cameraNumber = lastOpenedCamera ; cameraNumber < 10 ; cameraNumber++ ) {
+////					try {
+////						capture = new VideoCapture(cameraNumber);
+////						if ( capture.isOpened() ) { // check if we succeeded
+////							lastOpenedCamera = cameraNumber + 1;
+////							break;
+////						}
+////					} catch ( Exception any ) {
+////						any.printStackTrace();
+////					}
+////				}
+//				//capture = new VideoCapture();
+//				//capture.open(0, 640, 480, 1);
+//			}
+			if ( capture != null && capture.isOpened() ) { // check if we succeeded
+
+				// read from the camera.
+				boolean success = capture.read(fromCamera);
+				//System.out.println ("Success " + success + " " + System.currentTimeMillis() % 10000);
+				if (success ) {
+					// works on RoboRio and be accessible from the web browser (http://roborio-4153.local/Test.jpg)
+					// there seems to be a problem here in that the image gets overwritten
+					// and the web server will see half an image.
+					File f = new File ("/var/local/natinst/www/images/" + "Temp.jpg");
+					Highgui.imwrite(f.getAbsolutePath(), fromCamera);
+					f.renameTo(new File("/var/local/natinst/www/images/" + "Test.jpg"));
+				}
+
+				// Should convert from an OpenCV image to an NIVision Image and so can be sent to the dashboard.
+				// This code doesn't work.  The problem is (probably) the format of the array, but the error
+				// is a null pointer exception.  
+//				byte[] imageBytes = new byte[fromCamera.cols()*fromCamera.rows()*(int)fromCamera.elemSize()];
+//				fromCamera.get(fromCamera.rows(), fromCamera.cols(), imageBytes);
+//				ByteBuffer imgbuf = ByteBuffer.wrap(imageBytes);
+//				Image frame = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_RGB, 0);
+//				RawData rawData = new RawData(imgbuf);
+//				NIVision.imaqArrayToImage(frame, rawData, fromCamera.cols(), fromCamera.rows());
+//				CameraServer.getInstance().setImage(frame);
+			}
+		} catch ( Exception any ) {
+			any.printStackTrace();
+		}
+		fromCamera.release();
+		//capture.release();
+		//capture = null;
 	}
 
 	/**
@@ -136,10 +203,12 @@ public class Robot extends IterativeRobot {
 	public void disabledInit() {
 
 		//forklift.reset();
+		//forklift.calibrate();
 		sensors.reset();
 
 	}
-
+	
+	
 	public Chassis getChassis() {
 		return chassis;
 	}

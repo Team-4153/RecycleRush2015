@@ -36,7 +36,7 @@ public abstract class RobotMap {
 	public static final double DRIVER_D = 0.0;
 	public static final double DRIVER_FEED_FORWARD = 0.10;
 	public static final int DRIVER_RAMP = -30;
-	public static final double DRIVER_MAX_OUTPUT = 1300;			//not part of PID
+	public static final double DRIVER_MAX_OUTPUT = 1600;			//not part of PID
 	
 	public static final double LIFT_MOTOR_P = 0.25;
 	public static final double LIFT_MOTOR_I = .00015;
@@ -49,6 +49,7 @@ public abstract class RobotMap {
 	public static final int BRAKE_MOTOR_D = 1;
 	public static final double BRAKE_MOTOR_FEED_FORWARD = 0.001;
 	public static final int BRAKE_MOTOR_RAMP = 36;
+	public static final int FORK_POSITION_TOLERANCE = 5;
 	
 	
 	
