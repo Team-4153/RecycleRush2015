@@ -201,7 +201,7 @@ public class Forklift implements Subsystem {
 		}
 
 		// If the speed is low and it has been running for a while, stop moving
-		if (( liftMotor.getSpeed() <= 0.5 ) && ( System.currentTimeMillis() - currentTime>=5000 )) {
+		if (( liftMotor.getSpeed() <= 0.5 ) && ( System.currentTimeMillis() - currentTime >= 5000 )) {
 			desired = currentPosition;
 			liftMotor.disableControl();
 		}
