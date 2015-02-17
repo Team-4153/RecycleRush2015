@@ -37,6 +37,8 @@ public class Robot extends IterativeRobot {
 	VideoCapture capture; 
 	int lastOpenedCamera = 0;
 
+	static long autoTime = System.currentTimeMillis();
+
 	static {
 		System.load("/usr/local/lib/lib_OpenCV/java/libopencv_java2410.so");
 	}
@@ -91,6 +93,10 @@ public class Robot extends IterativeRobot {
 
 		saveJpg();
 
+		Sensors.resetIntegration();
+
+		autoTime = System.currentTimeMillis();
+
 		////////////////////////////////////
 		//		try {
 		//			//System.out.println ("Capturing Video");
@@ -118,7 +124,96 @@ public class Robot extends IterativeRobot {
 	 * This function is called periodically during autonomous
 	 */
 	public void autonomousPeriodic() {
+		int mode = (int) SmartDashboard.getNumber("AutoMode");
+		long currentTime = System.currentTimeMillis()-autoTime;
+		//forklift.autoPeriodic();
+		switch(mode) {
+
+		case RobotMap.DRIVE_FORWARD_MODE:
+			chassis.autoDrive( 0.0 , -0.5, 0 );
+			break;
+		case 1:
+			if (currentTime <=300) {
+				forklift.open();
+				Sensors.getGyro().reset();
+				// do nichts
+				// wait for the jaws to open
+
+			} else if(currentTime <= 400) { 
+				forklift.calibrate();
+			}else if(currentTime <= 1500) { 
+				if (!forklift.isCalibrating()) {
+					forklift.close();
+				}
+			}else if (currentTime <= 2100) {
+				if (!forklift.isCalibrating()) {
+					forklift.close();
+				}
+				forklift.moveTo(2000);
+				if (Sensors.getGyroAngle()>-90) {
+					chassis.autoDrive(0, 0, -0.3);
+				}else {
+					chassis.autoDrive(0, 0, 0);
+				}
+
+			} else if (currentTime <= 3100) {
+
+				if (Sensors.getGyroAngle()>-90) {
+					chassis.autoDrive(-0.5, 0, -0.3);
+				}else {
+					chassis.autoDrive(-0.5, 0, 0);
+				}
+
+			} else if (currentTime>=4300) {
+
+				if (Sensors.getGyroAngle()<0) {
+					chassis.autoDrive(0, 0, 0.25);
+				}else {
+					chassis.autoDrive(0, 0, 0);
+				}
+			}
+			break;
+		case 2:
+			if (currentTime<=300) {
+				forklift.open();
+				Sensors.getGyro().reset();
+				// do nichts
+				// wait for the jaws to open
+				forklift.setPercentVBusMode(true);
+			} else if(currentTime <= 1400) { 
+				forklift.applyBrake(false);
+				forklift.moveTo(-0.2);
+			}else if(currentTime <= 1700) { 
+				forklift.applyBrake(true);
+				forklift.moveTo(0);
+				forklift.close();
+			}else if (currentTime <= 2700) {
+				forklift.applyBrake(false);
+				forklift.moveTo(0.9);
+			} else if (currentTime <= 3400) {
+				forklift.moveTo(0.9);
+				
+				chassis.autoDrive(0.6, 0.05, 0);
+			} else if (currentTime <= 4200) {
+				forklift.moveTo(0);
+				forklift.applyBrake(true);
+
+				forklift.setPercentVBusMode(false);
+				forklift.moveTo(forklift.getPosition());
+				chassis.autoDrive(0., -0.5, 0);
+			} else if (currentTime>=5000) {
+				if (Sensors.getGyroAngle()<90) {
+					chassis.autoDrive(0, 0, 0.25);
+				}else {
+					chassis.autoDrive(0, 0, 0);
+				}
+			}
+
+		}
+
 	}
+
+
 
 	/**
 	 * This function is called periodically during operator control
@@ -126,7 +221,7 @@ public class Robot extends IterativeRobot {
 	public void teleopPeriodic() {
 		chassis.iterate();	
 		forklift.iterate();
-
+		sensors.iterate();
 
 
 
@@ -136,24 +231,24 @@ public class Robot extends IterativeRobot {
 	public void saveJpg () {
 		Mat fromCamera = new Mat();
 		try {
-//			if ( capture == null ) {
-//				//System.out.println ("Capturing Video");
-//				//VideoCapture capture; // open the default camera
-//				// open the default camera
-////				for ( int cameraNumber = lastOpenedCamera ; cameraNumber < 10 ; cameraNumber++ ) {
-////					try {
-////						capture = new VideoCapture(cameraNumber);
-////						if ( capture.isOpened() ) { // check if we succeeded
-////							lastOpenedCamera = cameraNumber + 1;
-////							break;
-////						}
-////					} catch ( Exception any ) {
-////						any.printStackTrace();
-////					}
-////				}
-//				//capture = new VideoCapture();
-//				//capture.open(0, 640, 480, 1);
-//			}
+			//			if ( capture == null ) {
+			//				//System.out.println ("Capturing Video");
+			//				//VideoCapture capture; // open the default camera
+			//				// open the default camera
+			////				for ( int cameraNumber = lastOpenedCamera ; cameraNumber < 10 ; cameraNumber++ ) {
+			////					try {
+			////						capture = new VideoCapture(cameraNumber);
+			////						if ( capture.isOpened() ) { // check if we succeeded
+			////							lastOpenedCamera = cameraNumber + 1;
+			////							break;
+			////						}
+			////					} catch ( Exception any ) {
+			////						any.printStackTrace();
+			////					}
+			////				}
+			//				//capture = new VideoCapture();
+			//				//capture.open(0, 640, 480, 1);
+			//			}
 			if ( capture != null && capture.isOpened() ) { // check if we succeeded
 
 				// read from the camera.
@@ -171,13 +266,13 @@ public class Robot extends IterativeRobot {
 				// Should convert from an OpenCV image to an NIVision Image and so can be sent to the dashboard.
 				// This code doesn't work.  The problem is (probably) the format of the array, but the error
 				// is a null pointer exception.  
-//				byte[] imageBytes = new byte[fromCamera.cols()*fromCamera.rows()*(int)fromCamera.elemSize()];
-//				fromCamera.get(fromCamera.rows(), fromCamera.cols(), imageBytes);
-//				ByteBuffer imgbuf = ByteBuffer.wrap(imageBytes);
-//				Image frame = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_RGB, 0);
-//				RawData rawData = new RawData(imgbuf);
-//				NIVision.imaqArrayToImage(frame, rawData, fromCamera.cols(), fromCamera.rows());
-//				CameraServer.getInstance().setImage(frame);
+				//				byte[] imageBytes = new byte[fromCamera.cols()*fromCamera.rows()*(int)fromCamera.elemSize()];
+				//				fromCamera.get(fromCamera.rows(), fromCamera.cols(), imageBytes);
+				//				ByteBuffer imgbuf = ByteBuffer.wrap(imageBytes);
+				//				Image frame = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_RGB, 0);
+				//				RawData rawData = new RawData(imgbuf);
+				//				NIVision.imaqArrayToImage(frame, rawData, fromCamera.cols(), fromCamera.rows());
+				//				CameraServer.getInstance().setImage(frame);
 			}
 		} catch ( Exception any ) {
 			any.printStackTrace();
@@ -207,8 +302,8 @@ public class Robot extends IterativeRobot {
 		sensors.reset();
 
 	}
-	
-	
+
+
 	public Chassis getChassis() {
 		return chassis;
 	}

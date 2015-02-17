@@ -14,7 +14,12 @@ public abstract class RobotMap {
 	// Joysticks
 	public static final int DRIVER_JOYSTICK = 0;
 	public static final int MANIPULATOR_JOYSTICK = 1;
-	public static final double DRIVER_JOYSTICK_TOLERANCE = .2;
+	
+	// Joystick constants
+	public static final double DRIVER_JOYSTICK_TOLERANCE = .1;
+	public static final double DRIVER_JOYSTICK_TWIST_MODIFIER = 0.35;
+	
+	public static final double ROBOT_CONTROL_MODIFIER = 0.3;
 
 	// Motor ports
 	public static final int FRONT_RIGHT_TALON = 2;
@@ -51,7 +56,8 @@ public abstract class RobotMap {
 	public static final int BRAKE_MOTOR_RAMP = 36;
 	public static final int FORK_POSITION_TOLERANCE = 5;
 	
-	
+	// Auto modes
+	public static final int DRIVE_FORWARD_MODE = 0;
 	
 	
 	

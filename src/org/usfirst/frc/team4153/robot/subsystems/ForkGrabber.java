@@ -1,4 +1,5 @@
 package org.usfirst.frc.team4153.robot.subsystems;
+import org.usfirst.frc.team4153.robot.Robot;
 import org.usfirst.frc.team4153.robot.RobotMap;
 
 import edu.wpi.first.wpilibj.CANTalon;
@@ -8,7 +9,7 @@ public class ForkGrabber implements Subsystem {
 
 	private CANTalon forkMotor;
 	private long currentTime;
-	private boolean lastValueOfDrop = false;
+	private double lastValueOfWantedPosition;
 
 	/**
 	 * Sets up the lift, fork, and brake motors and the manipulator joystick
@@ -27,6 +28,9 @@ public class ForkGrabber implements Subsystem {
 		forkMotor.ClearIaccum();
 		forkMotor.setSafetyEnabled( true );
 		forkMotor.enableBrakeMode( true );
+		
+		forkMotor.reverseSensor( false );
+		forkMotor.reverseOutput( true );
 
 		/*forkMotor.enableForwardSoftLimit(true);
 		forkMotor.setForwardSoftLimit(523);
@@ -34,6 +38,8 @@ public class ForkGrabber implements Subsystem {
 		forkMotor.enableReverseSoftLimit(true);
 		forkMotor.setReverseSoftLimit(490);
 		 */
+		
+		lastValueOfWantedPosition = SmartDashboard.getNumber( "ForkOpening" );
 
 	}
 
@@ -50,95 +56,52 @@ public class ForkGrabber implements Subsystem {
 	public void iterate() {
 
 
-		forkMotor.reverseSensor( false );
-		forkMotor.reverseOutput( true );
+		
 
-		// TODO this needs to be fixed so that it also moves up and down
-		
-		// TODO this might not work at all
-		
-		if ( SmartDashboard.getBoolean("Drop") ) {
-			if (isClosed()) {
-				if (currentTime>=500) {
-					forkMotor.enableControl();
-					forkMotor.set( 490 );					
-					currentTime = System.currentTimeMillis();
-				}
-			} else {
-				if (currentTime>=500) {
-					forkMotor.enableControl();
-					forkMotor.set( 528 );					
-					currentTime = System.currentTimeMillis();
-				}
-			}
-			SmartDashboard.putBoolean("Drop", false);
-		}
-		
-		
-		
-		if( SmartDashboard.getBoolean( "Drop " ) ) {
-			if( isClosed() ) {									//decrease RobotMap.FORK_POSITION_TOLERANCE to make more sensetive
-				forkMotor.enableControl();						//max value is 523 ( closed fork ), min value is 490 ( open fork )
-				forkMotor.set( 490 );
-			} else {
-				forkMotor.enableControl();
-				forkMotor.set( 528 );	
-				SmartDashboard.putBoolean( "Drop" ,  false ); 
-			}	
-		}
-		
-		
-		if( SmartDashboard.getBoolean( "Drop " ) ) {
-			//drop
-			//first time through after a change in value of Drop
-			if( SmartDashboard.getBoolean( "Drop " ) != lastValueOfDrop ) {
-				forkMotor.enableControl();
-				forkMotor.set( 490 );
-				currentTime = System.currentTimeMillis();
-			}
-			
-			//set "Drop" to false
-			if( inPosition() ) {
-				SmartDashboard.putBoolean( "Drop" , false );
-			}
-		}
+		double wantedPositionOfGrabber = SmartDashboard.getNumber( "ForkOpening" );
 
-			
-
-		/*if (Robot.getRobot().getManipulatorJoystick().getRawButton(8)) {
-			forkMotor.enableControl();
-			forkMotor.set( 528 );					
-			currentTime = System.currentTimeMillis();								 //max value is 523 ( closed fork ), min value is 490 ( open fork )
+		if (Robot.getRobot().getManipulatorJoystick().getRawButton(8)) {
+			//max value is 523 ( closed fork ), min value is 490 ( open fork )
+			setPosition(530); 
 		}
 		if (Robot.getRobot().getManipulatorJoystick().getRawButton(9)) {
-			forkMotor.enableControl();
-			forkMotor.set( 490 );
-			currentTime = System.currentTimeMillis();
+			setPosition(490); 
 		}
 		if (Robot.getRobot().getManipulatorJoystick().getRawButton( 11 )) {
-			forkMotor.enableControl();
-			forkMotor.set( 505 );
-			currentTime = System.currentTimeMillis();
+			setPosition(505); 
 		}
-		 */
+		
+		/*if( SmartDashboard.getNumber( "ForkOpening" ) != lastValueOfWantedPosition ) {
+			forkMotor.enableControl();
+			forkMotor.set( wantedPositionOfGrabber );
+			currentTime = System.currentTimeMillis();
+		}*/
+		
+		checkMotorTimeout();
+
+		// System.out.println( "Flex Sensor Position: " + forkMotor.getAnalogInRaw() + ", Motor Setpoint, " + forkMotor.getSetpoint() + ", Motor output: " + forkMotor.getOutputCurrent() );
+
+		
+		lastValueOfWantedPosition = SmartDashboard.getNumber( "ForkOpening" );
+	}
+
+
+
+	public void checkMotorTimeout() {
+		SmartDashboard.putNumber("GrabberPosition", forkMotor.getAnalogInRaw());
 
 		if ( System.currentTimeMillis() - currentTime >= 1000 || forkMotor.getOutputCurrent()  >= 5.5) {			//GOES THROUGH LOOP
 			forkMotor.set( forkMotor.getAnalogInRaw() );
 			forkMotor.disable();
 			forkMotor.disableControl();
-			System.out.println("Fork Motor Disabled");
 		}
+	}
+	
+	public void setPosition(int position) {
+		forkMotor.enableControl();
+		forkMotor.set( position );
+		currentTime = System.currentTimeMillis();
 
-		System.out.println( "Flex Sensor Position: " + forkMotor.getAnalogInRaw() + ", Motor Setpoint, " + forkMotor.getSetpoint() + ", Motor output: " + forkMotor.getOutputCurrent() );
-
-		if (forkMotor.isControlEnabled()) {
-			//	System.out.println("Control enabled");
-		} else {
-			//	System.out.println("Control disabled");
-		}
-		
-		
-		lastValueOfDrop = SmartDashboard.getBoolean( "Drop" );
 	}
 
 	/**

@@ -60,6 +60,8 @@ public class Chassis implements Subsystem {
 
 		drive.setSafetyEnabled(false); // disable safety restrictions to boost
 										// performance
+		
+		drive.setMaxOutput( RobotMap.DRIVER_MAX_OUTPUT );	
 
 	}
 
@@ -69,7 +71,7 @@ public class Chassis implements Subsystem {
 		//System.out.println("Joystick xy: " + joystick.getX()+", " + joystick.getY());
 		
 		
-		drive.setMaxOutput( RobotMap.DRIVER_MAX_OUTPUT );			//1300 current number.... if debug put actual value to test
+				//1300 current number.... if debug put actual value to test
 		
 		
 		if(joystick.getRawButton(2) == true) {				// check if the gyro needs reseting
@@ -89,12 +91,19 @@ public class Chassis implements Subsystem {
 		
 //================================================
 		
+		boolean robotDrive = joystick.getRawButton(3);
+		
 		if( Math.abs(joystick.getX() ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE || 
 				Math.abs( joystick.getY() ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE || 
 				Math.abs( joystick.getZ() ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE )  {  		//all values have a range from -1 to 1
 			if( isMechanum ) {
-				drive.mecanumDrive_Cartesian(joystick.getX(), joystick.getY(), joystick.getTwist(), Sensors.getGyroAngle());
-			} else {
+				// for robot drive, it assumes that the gyro angle is 0
+				if (robotDrive) {
+					drive.mecanumDrive_Cartesian(joystick.getX()*RobotMap.ROBOT_CONTROL_MODIFIER, joystick.getY()*RobotMap.ROBOT_CONTROL_MODIFIER, joystick.getTwist()*RobotMap.DRIVER_JOYSTICK_TWIST_MODIFIER, 0);
+				}else {
+					drive.mecanumDrive_Cartesian(joystick.getX(), joystick.getY(), joystick.getTwist()*RobotMap.DRIVER_JOYSTICK_TWIST_MODIFIER, Sensors.getGyroAngle());
+				}
+				} else {
 				drive.arcadeDrive(joystick);
 			}
 		
@@ -110,6 +119,15 @@ public class Chassis implements Subsystem {
 		
 	
 		
+	}
+	
+	/** 
+	 * Orders the drive to speeds x and y
+	 * @param x [-1.0, 1.0]
+	 * @param y [-1.0, 1.0]
+	 */
+	public void autoDrive(double x, double y, double turn) {
+		drive.mecanumDrive_Cartesian(x, y, turn, Sensors.getGyroAngle());
 	}
 
 	@Override
