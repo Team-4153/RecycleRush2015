@@ -12,6 +12,7 @@ public class ForkGrabber implements Subsystem {
 	private double lastValueOfWantedPosition;
 	double wantedPositionOfGrabber;
 	private boolean wantedOpened = true;   	//true means open
+	private boolean oldWantedOpen = false;
 
 	/**
 	 * Sets up the lift, fork, and brake motors and the manipulator joystick
@@ -43,7 +44,7 @@ public class ForkGrabber implements Subsystem {
 		forkMotor.setReverseSoftLimit(490);
 		 */
 		
-		lastValueOfWantedPosition = SmartDashboard.getNumber( "ForkOpening" );
+		oldWantedOpen = SmartDashboard.getBoolean( "OpenFork", true );
 
 	}
 
@@ -53,7 +54,6 @@ public class ForkGrabber implements Subsystem {
 	public void iterate() {
 		
 		wantedOpened = SmartDashboard.getBoolean( "OpenFork", true );
-
 
 //		if ( Robot.getRobot().getManipulatorJoystick().getRawButton(8) ) {
 //			//max value is 523 ( closed fork ), min value is 490 ( open fork )
@@ -67,34 +67,40 @@ public class ForkGrabber implements Subsystem {
 //		}
 		
 		if( wantedOpened ) {
-			forkMotor.enableControl();
-			forkMotor.set( 0.5 );
-			currentTime = System.currentTimeMillis();
+			open();
 		} else {
-			forkMotor.enableControl();
-			forkMotor.set( -0.5 );
+			close();
+		}
+		if (oldWantedOpen != wantedOpened) {
 			currentTime = System.currentTimeMillis();
-			checkMotorTimeout();
-
 		}
 		
-		
+		checkMotorTimeout();
 
 		// System.out.println( "Flex Sensor Position: " + forkMotor.getAnalogInRaw() + ", Motor Setpoint, " + forkMotor.getSetpoint() + ", Motor output: " + forkMotor.getOutputCurrent() );
 
-		System.out.println ("Wanted: " + wantedPositionOfGrabber  +", Current: "+ forkMotor.getPosition()+" ForwardLimit: "+forkMotor.isFwdLimitSwitchClosed()+" Back: "+forkMotor.isRevLimitSwitchClosed());
+		//System.out.println ("Wanted: " + wantedPositionOfGrabber  +", Current: "+ forkMotor.getPosition()+" ForwardLimit: "+forkMotor.isFwdLimitSwitchClosed()+" Back: "+forkMotor.isRevLimitSwitchClosed());
 		
-		
+		oldWantedOpen = wantedOpened;
 	
 	}
 
+	public void close() {
+		forkMotor.enableControl();
+		forkMotor.set( -1 );
+	}
 
+	public void open() {
+		forkMotor.enableControl();
+		forkMotor.set( 0.5 );
+	}
 
 	public void checkMotorTimeout() {
 		SmartDashboard.putNumber("GrabberPosition", forkMotor.getAnalogInRaw());
 
 		if ( (System.currentTimeMillis() - currentTime >= 1000) || forkMotor.getOutputCurrent()  >= 5.5) {			//GOES THROUGH LOOP
-			forkMotor.set( -0.15 );
+			forkMotor.set( -0.1 );
+			System.out.println("Lessening grabber output");
 		}
 	}
 	
@@ -104,7 +110,7 @@ public class ForkGrabber implements Subsystem {
 			forkMotor.set(0.6);
 		}
 		else {
-			forkMotor.set(-0.6);
+			forkMotor.set(-0.8);
 		}
 		currentTime = System.currentTimeMillis();
 

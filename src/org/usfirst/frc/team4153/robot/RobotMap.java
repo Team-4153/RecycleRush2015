@@ -18,6 +18,7 @@ public abstract class RobotMap {
 	// Joystick constants
 	public static final double DRIVER_JOYSTICK_TOLERANCE = .1;
 	public static final double DRIVER_JOYSTICK_TWIST_MODIFIER = 0.35;
+	public static final double DRIVER_MAX_OUTPUT = 1450;					//not part of PID
 	
 	public static final double ROBOT_CONTROL_MODIFIER = 0.3;
 
@@ -41,7 +42,7 @@ public abstract class RobotMap {
 	public static final double DRIVER_D = 0.0;
 	public static final double DRIVER_FEED_FORWARD = 0.10;
 	public static final int DRIVER_RAMP = -30;
-	public static final double DRIVER_MAX_OUTPUT = 1600;			//not part of PID
+	
 	
 	public static final double LIFT_MOTOR_P = 0.25;
 	public static final double LIFT_MOTOR_I = .00015;

@@ -59,8 +59,8 @@ public class Chassis implements Subsystem {
 		drive = new RobotDrive(frontLeft, backLeft, frontRight, backRight);
 
 		drive.setSafetyEnabled(false); // disable safety restrictions to boost
-										// performance
-		
+		// performance
+
 		drive.setMaxOutput( RobotMap.DRIVER_MAX_OUTPUT );	
 
 	}
@@ -69,58 +69,59 @@ public class Chassis implements Subsystem {
 
 		Joystick joystick = Sensors.getDriverJoystick();
 		//System.out.println("Joystick xy: " + joystick.getX()+", " + joystick.getY());
-		
-		
-				//1300 current number.... if debug put actual value to test
-		
-		
+
+
+		//1300 current number.... if debug put actual value to test
+
+
 		if(joystick.getRawButton(2) == true) {				// check if the gyro needs reseting
 			Sensors.gyroReset();
 			System.out.println("Gyro Reset Succesfull");
 		}
-		
 
-//---------------------------------------check for mechanum
-		
+
+		//---------------------------------------check for mechanum
+
 		if( joystick.getRawButton( 8 ) ) {
 			isMechanum = true;
 		}
 		if( joystick.getRawButton( 7 ) ) {
 			isMechanum = false;
 		}
-		
-//================================================
-		
+
+		//================================================
+
 		boolean robotDrive = joystick.getRawButton(3);
-		
+
+		double throttle = joystick.getThrottle()*RobotMap.ROBOT_CONTROL_MODIFIER;
+		if (robotDrive) {
+			throttle*=RobotMap.ROBOT_CONTROL_MODIFIER;
+		}
+
 		if( Math.abs(joystick.getX() ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE || 
 				Math.abs( joystick.getY() ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE || 
 				Math.abs( joystick.getZ() ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE )  {  		//all values have a range from -1 to 1
 			if( isMechanum ) {
 				// for robot drive, it assumes that the gyro angle is 0
-				if (robotDrive) {
-					drive.mecanumDrive_Cartesian(joystick.getX()*RobotMap.ROBOT_CONTROL_MODIFIER, joystick.getY()*RobotMap.ROBOT_CONTROL_MODIFIER, joystick.getTwist()*RobotMap.DRIVER_JOYSTICK_TWIST_MODIFIER, 0);
-				}else {
-					drive.mecanumDrive_Cartesian(joystick.getX(), joystick.getY(), joystick.getTwist()*RobotMap.DRIVER_JOYSTICK_TWIST_MODIFIER, Sensors.getGyroAngle());
-				}
-				} else {
+				drive.mecanumDrive_Cartesian(joystick.getX()*throttle, joystick.getY()*throttle, joystick.getTwist()*RobotMap.DRIVER_JOYSTICK_TWIST_MODIFIER, Sensors.getGyroAngle());
+			} else {
 				drive.arcadeDrive(joystick);
 			}
-		
-		//System.out.println( "Drive Joystick... X: " + joystick.getX() + "   Y: " + joystick.getY() + "  Z: " + joystick.getZ() );
+
+			//System.out.println( "Drive Joystick... X: " + joystick.getX() + "   Y: " + joystick.getY() + "  Z: " + joystick.getZ() );
 		} else {
-			
+
 			if( isMechanum ) {
 				drive.mecanumDrive_Cartesian( 0.0 , 0.0, 0.0, 0.0 );
 			} else {
 				drive.arcadeDrive(joystick);
 			}
 		}
-		
-	
-		
+
+
+
 	}
-	
+
 	/** 
 	 * Orders the drive to speeds x and y
 	 * @param x [-1.0, 1.0]

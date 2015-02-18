@@ -130,10 +130,14 @@ public class Robot extends IterativeRobot {
 		switch(mode) {
 
 		case RobotMap.DRIVE_FORWARD_MODE:
-			if (currentTime <= 2000) {
-			chassis.autoDrive( 0.0 , -0.5, 0 );
+			if (currentTime <= 2200) {
+				chassis.autoDrive( 0.0 , -0.5, 0 );
 			} else {
-				chassis.autoDrive(0, 0, 0);
+				if (Sensors.getGyroAngle()<90) {
+					chassis.autoDrive(0, 0, 0.3);
+				}else {
+					chassis.autoDrive(0, 0, 0);
+				}
 			}
 			break;
 		case 1:
@@ -145,31 +149,31 @@ public class Robot extends IterativeRobot {
 
 			} else if(currentTime <= 400) { 
 				forklift.calibrate();
-			}else if(currentTime <= 1500) { 
+			}else if(currentTime <= 1950) { 
 				if (!forklift.isCalibrating()) {
 					forklift.close();
 				}
-			}else if (currentTime <= 2100) {
+			}else if (currentTime <= 2550) {
 				if (!forklift.isCalibrating()) {
 					forklift.close();
 				}
-				forklift.moveTo(2000);
+				forklift.moveTo(4000);
 				if (Sensors.getGyroAngle()<90) {
 					chassis.autoDrive(0, 0, 0.3);
 				}else {
 					chassis.autoDrive(0, 0, 0);
 				}
 
-			} else if (currentTime <= 3100) {
-
+			} else if (currentTime <= 4550) {
+				forklift.moveTo(4000);
 				if (Sensors.getGyroAngle()<90) {
-					chassis.autoDrive(-0.5, 0, 0.3);
+					chassis.autoDrive(0.5, 0, 0.3);
 				}else {
-					chassis.autoDrive(-0.5, 0, 0);
+					chassis.autoDrive(0.5, 0, 0);
 				}
 
-			} else if (currentTime>=4300) {
-
+			} else if (currentTime>=5750) {
+				forklift.moveTo(4000);
 				if (Sensors.getGyroAngle()>0) {
 					chassis.autoDrive(0, 0, -0.25);
 				}else {
@@ -179,6 +183,7 @@ public class Robot extends IterativeRobot {
 			break;
 		case 2:
 			if (currentTime<=300) {
+				forklift.setZero();
 				forklift.open();
 				Sensors.getGyro().reset();
 				// do nichts
@@ -189,24 +194,25 @@ public class Robot extends IterativeRobot {
 				
 			}else if(currentTime <= 1700) { 
 				
-				forklift.moveTo(forklift.getPosition());
+				forklift.moveTo(-2000);
 				forklift.close();
 				
 			}else if (currentTime <= 2700) {
 				
-				forklift.moveTo(0);
+				forklift.moveTo(1300);
 				
 			} else if (currentTime <= 3400) {
 				
-				forklift.moveTo(0);
-				chassis.autoDrive(0.6, 0.05, 0);
+				forklift.moveTo(1300);
+				chassis.autoDrive(0.6, 0.15, 0);
 				
-			} else if (currentTime <= 4200) {
+			} else if (currentTime <= 5900) {
 				
-				forklift.moveTo(forklift.getPosition());
+				forklift.moveTo(1300);
 				chassis.autoDrive(0., -0.5, 0);
 				
-			} else if (currentTime>=5000) {
+			} else if (currentTime>=6400) {
+				forklift.moveTo(1300);
 				if (Sensors.getGyroAngle()<90) {
 					chassis.autoDrive(0, 0, 0.25);
 				}else {

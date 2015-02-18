@@ -14,7 +14,7 @@ public class Forklift implements Subsystem {
 
 	//Difference between lift motor position and desired position (in encoder value) that is considered "close enough" to the desired position
 	private final int BRAKE_TOLERANCE = 3; //Set later
-	private final int FORWARD_SOFT_LIMIT = 10000;
+	private final int FORWARD_SOFT_LIMIT = 11000;
 	private long counter = 0;
 	private long currentTime;
 	private double lastSetPoint = 0;
@@ -109,13 +109,11 @@ public class Forklift implements Subsystem {
 	}
 
 	public void close() {
-		forkgrabber.moveTo(530);
-		forkgrabber.checkMotorTimeout();
+		forkgrabber.close();
 	}
 
 	public void open() {
-		forkgrabber.moveTo(490);
-		forkgrabber.checkMotorTimeout();
+		forkgrabber.open();
 	}
 
 	private class CalibrateThread extends Thread {
@@ -177,6 +175,8 @@ public class Forklift implements Subsystem {
 		} else if (calibrateThread == null) {
 			iterateLift();
 		}
+
+
 
 		forkgrabber.iterate();
 
@@ -243,6 +243,7 @@ public class Forklift implements Subsystem {
 
 		// If the speed is low and it has been running for a while, stop moving
 
+		//System.out.println(desired);
 
 		if( Math.abs( liftMotor.getPosition() - desired ) < 200 ) {
 			moveTo(currentPosition);
@@ -261,6 +262,10 @@ public class Forklift implements Subsystem {
 		//System.out.println( "Wanted Value: " + desired + "\t    Lift motor position: " + liftMotor.getPosition() );
 		Sensors.setAnalogOutput(-liftMotor.getEncPosition()/2000);
 
+	}
+	
+	public void setZero () {
+		liftMotor.setPosition(0);
 	}
 
 
@@ -303,8 +308,12 @@ public class Forklift implements Subsystem {
 		}
 	}
 
-
+	int count = 0;
 	public void moveTo( double desired ) {
+		count ++;
+		if (count % 10 == 0) {
+			System.out.println("Wanted: " + desired+ ", Current: " + liftMotor.getPosition());
+		}
 		// should only try to move if not calibrating
 		if (calibrateThread == null) {
 			if (Math.abs(liftMotor.getPosition() - desired) > 3000) {
