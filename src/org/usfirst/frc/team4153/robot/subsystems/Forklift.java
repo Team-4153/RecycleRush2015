@@ -14,10 +14,11 @@ public class Forklift implements Subsystem {
 
 	//Difference between lift motor position and desired position (in encoder value) that is considered "close enough" to the desired position
 	private final int BRAKE_TOLERANCE = 3; //Set later
+	private final int FORWARD_SOFT_LIMIT = 10000;
 	private long counter = 0;
 	private long currentTime;
 	private double lastSetPoint = 0;
-	
+
 	boolean firstRun = true;
 
 
@@ -38,10 +39,11 @@ public class Forklift implements Subsystem {
 	 */
 	public void init() {
 		SmartDashboard.putBoolean( "PresetButtonPressed", false );
-		
-		
+
+
 		liftMotor = new CANTalon( RobotMap.LIFT_MOTOR );
-		liftMotor.changeControlMode( CANTalon.ControlMode.Position);	
+		//liftMotor.changeControlMode( CANTalon.ControlMode.Position);
+		liftMotor.changeControlMode(CANTalon.ControlMode.PercentVbus);
 		liftMotor.setFeedbackDevice(CANTalon.FeedbackDevice.QuadEncoder);
 		liftMotor.setPosition(0);  
 
@@ -52,7 +54,7 @@ public class Forklift implements Subsystem {
 		liftMotor.reverseOutput( false );
 		liftMotor.enableBrakeMode( true );
 		liftMotor.setReverseSoftLimit( 100 );
-		liftMotor.setForwardSoftLimit(8900); 			/// TODO Check and change
+		liftMotor.setForwardSoftLimit(FORWARD_SOFT_LIMIT); 			/// TODO Check and change
 		liftMotor.enableForwardSoftLimit(true);
 		liftMotor.setSafetyEnabled(false);
 
@@ -75,7 +77,7 @@ public class Forklift implements Subsystem {
 		currentTime = System.currentTimeMillis();
 
 
-		calibrate();			//taken out temporarily
+		// calibrate();			//taken out temporarily
 	}
 
 	public void reset() {
@@ -94,11 +96,11 @@ public class Forklift implements Subsystem {
 		}
 
 	}
-	
+
 	public boolean isCalibrating() {
 		return !(calibrateThread == null);
 	}
-	
+
 	/**
 	 * the can kept complaining I wasnt updating it enough
 	 */
@@ -107,15 +109,15 @@ public class Forklift implements Subsystem {
 	}
 
 	public void close() {
-		forkgrabber.setPosition(530);
+		forkgrabber.moveTo(530);
 		forkgrabber.checkMotorTimeout();
 	}
-	
+
 	public void open() {
-		forkgrabber.setPosition(490);
+		forkgrabber.moveTo(490);
 		forkgrabber.checkMotorTimeout();
 	}
-	
+
 	private class CalibrateThread extends Thread {
 		public void run() {
 			try {
@@ -125,7 +127,7 @@ public class Forklift implements Subsystem {
 				int counter = 100;
 				while (counter-- > 0 && !liftMotor.isRevLimitSwitchClosed()) {
 					liftMotor.set(-0.2);
-					System.out.println("Calibrating");
+					//System.out.println("Calibrating");
 					try {
 						sleep(10);
 					} catch (InterruptedException e) {
@@ -136,25 +138,40 @@ public class Forklift implements Subsystem {
 
 			} finally {
 				liftMotor.set(0);
-				liftMotor.changeControlMode(CANTalon.ControlMode.Position);
+				//liftMotor.changeControlMode(CANTalon.ControlMode.Position);
+				liftMotor.changeControlMode(CANTalon.ControlMode.PercentVbus);
 				liftMotor.setPosition(0);
-
+				//==================================================
+				try {
+					sleep( 200 );
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				//==================================================
 				calibrateThread = null;
 				liftMotor.enableReverseSoftLimit(true);
 				liftMotor.enableForwardSoftLimit(true);
-				System.out.println( "Finished Calibrating" );
+				System.out.println( "Finished Calibrating! ... Encoder Value: " + liftMotor.getPosition() );
+				SmartDashboard.putBoolean( "PresetButtonPressed", false );
 			}
 		}
 	}
 
 
 	public void iterate() {
+		boolean temporary = false;
+		try {
+			temporary = SmartDashboard.getBoolean("Reset");
+		} catch (Exception e) {
+			e.printStackTrace();			
+		}
 		if (firstRun) {
 			SmartDashboard.putBoolean( "PresetButtonPressed", false );
 			//calibrate();
 			firstRun = false;
 		}
-		if( SmartDashboard.getBoolean("Reset") == true ) {
+		if( temporary ) {
 			calibrate();
 			SmartDashboard.putBoolean("Reset", false);
 		} else if (calibrateThread == null) {
@@ -167,19 +184,18 @@ public class Forklift implements Subsystem {
 
 	/** run the lifting code */
 	public void iterateLift() {
-		
+
 		// Continuous "Auto Calibrate"
 		if (liftMotor.isRevLimitSwitchClosed()) {
 			liftMotor.setPosition(0);
 		}
 
-		//boolean buttonIsPressed = SmartDashboard.getBoolean("PresetButtonPressed");
 
 		double currentJoystick;
 		double currentPosition;
 		double desired = 0;
 
-		double actualForkOffset = 0;
+		//double actualForkOffset = 0;
 
 
 		currentJoystick = Robot.getRobot().getManipulatorJoystick().getY();
@@ -195,23 +211,30 @@ public class Forklift implements Subsystem {
 			//get lab view values
 			desired = SmartDashboard.getNumber("PresetValue") + SmartDashboard.getNumber("Offset")
 					+ SmartDashboard.getNumber("ContainerOffset") + SmartDashboard.getNumber("DropOffset");
-			liftMotor.enableControl();
+			//liftMotor.enableControl();
 			//applyBrake( false );
 
 		} else {
 			//manipulator control
 			if( Math.abs( currentJoystick ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE ) {
 				if( currentJoystick > 0.0 ) {
-					desired = currentPosition + 700;		//// min position should be zero.... max position should be 7810
+					desired = currentPosition + 1100;		//// min position should be zero.... max position should be 7810
 				} else {
-					desired = currentPosition - 700;
+					desired = currentPosition - 1100;
 				}
 			}
 
-			liftMotor.enableControl();
+			//liftMotor.enableControl();
 			//applyBrake( false );
-
 		}
+
+
+		if (desired > FORWARD_SOFT_LIMIT - 100)
+		{
+			desired = FORWARD_SOFT_LIMIT - 100;
+		}
+
+
 
 		if (desired != lastSetPoint) {
 			currentTime = System.currentTimeMillis();
@@ -219,81 +242,37 @@ public class Forklift implements Subsystem {
 		}
 
 		// If the speed is low and it has been running for a while, stop moving
-		if (( liftMotor.getSpeed() <= RobotMap.DRIVER_JOYSTICK_TOLERANCE ) && ( System.currentTimeMillis() - currentTime >= 5000 )) {
-			desired = currentPosition;
-			liftMotor.disableControl();
-		}
-
-		/*
-
-		if( Math.abs( currentJoystick ) > 0.2 ) {
-			//int change = (( currentJoystick > 0.0 ) ? 350 : -350 );		// min position should be zero.... max position should be 7810
-			//desired = ( currentMotor + change );		
 
 
-
-			if( currentJoystick > 0.0 ) {
-				desired = currentMotor + 700;
-			} else {
-				desired = currentMotor - 700;
-			}
-
-			liftMotor.enableControl();
-			applyBrake( false );
-			liftMotor.set(desired);
-
-			if( counter % 2000 == 0 ) {
-				System.out.println( "...1...Current Motor: " + currentMotor + "    Desired: " + desired + "      Current Joystick: " + currentJoystick );
-			}
-
-			currentTime = System.currentTimeMillis();
-
+		if( Math.abs( liftMotor.getPosition() - desired ) < 200 ) {
+			moveTo(currentPosition);
+			SmartDashboard.putBoolean( "PresetButtonPressed",false);
+			//liftMotor.setPosition(currentPosition);
 		} else {
-
-
-			if( System.currentTimeMillis() - currentTime > 1500 ) {
-				liftMotor.disableControl();
-			}
-			desired = currentMotor;
-			applyBrake( true );
-			liftMotor.set(desired);
-			liftMotor.ClearIaccum();
-			//liftMotor.disableControl();
-
-			if( counter % 2000 == 0 ) {
-				System.out.println( "...2...Current Motor: " + currentMotor + "    Desired: " + desired + "      Current Joystick: " + currentJoystick );
-			}
+			moveTo(desired);
 		}
 
-		 */
-
-		//=================================================================================	TEST CODE TODO
-
-
-
-		//System.out.println( "...2...Current Motor: " + currentPosition + "    Desired: " + desired + "      Current Joystick: " + currentJoystick );
-		moveTo( desired );
-
-
-		if( Math.abs( liftMotor.getPosition() - desired ) < 50 ) {
-			applyBrake( true );
-			liftMotor.set(currentPosition);
-		} else {
-			applyBrake( false );
-		}
-
+		//		if (( liftMotor.getSpeed() <= RobotMap.DRIVER_JOYSTICK_TOLERANCE ) && ( System.currentTimeMillis() - currentTime >= 5000 )) {
+		//			applyBrake(true);
+		//			desired = currentPosition;
+		//			//liftMotor.disableControl();
+		//			
+		//		}
 		//System.out.println( "Wanted Value: " + desired + "\t    Lift motor position: " + liftMotor.getPosition() );
-		Sensors.setAnalogOutput(liftMotor.getEncPosition()/2000);
+		Sensors.setAnalogOutput(-liftMotor.getEncPosition()/2000);
+
 	}
 
 
-	public void applyBrake( boolean brakeBoolean) {
+	protected void applyBrake( boolean brakeBoolean) {
 
 		if ( brakeBoolean ) {
 			brakeMotor.set(-0.3);
+			liftMotor.disableControl();		
 		}
 		else {
 			brakeMotor.set(0.3);
+			liftMotor.enableControl();			
 		}
 
 
@@ -307,11 +286,11 @@ public class Forklift implements Subsystem {
 
 
 	}
-	
+
 	public int getPosition() {
 		return liftMotor.getAnalogInRaw();
 	}
-	
+
 	/**
 	 * for autonomous only
 	 */
@@ -319,13 +298,54 @@ public class Forklift implements Subsystem {
 		if (vBus) {
 			liftMotor.changeControlMode(CANTalon.ControlMode.PercentVbus);
 		}else {
-			liftMotor.changeControlMode(CANTalon.ControlMode.Position);
+			//liftMotor.changeControlMode(CANTalon.ControlMode.Position);
+			liftMotor.changeControlMode(CANTalon.ControlMode.PercentVbus);
 		}
 	}
-	
+
 
 	public void moveTo( double desired ) {
-		liftMotor.set( desired );
+		// should only try to move if not calibrating
+		if (calibrateThread == null) {
+			if (Math.abs(liftMotor.getPosition() - desired) > 3000) {
+				applyBrake(false);
+				if (desired > liftMotor.getPosition()) {
+					liftMotor.set(0.6);
+				}
+				else {
+					liftMotor.set(-0.3);
+				}
+			}
+			else if (Math.abs(liftMotor.getPosition() - desired) > 1000) {
+				applyBrake(false);
+				if (desired > liftMotor.getPosition()) {
+					liftMotor.set(0.4);
+				}
+				else {
+					liftMotor.set(-0.2);
+				}
+			}
+			else if (Math.abs(liftMotor.getPosition() - desired) > 500) {
+				applyBrake(false);
+				if (desired > liftMotor.getPosition()) {
+					liftMotor.set(0.3);
+				}
+				else {
+					liftMotor.set(-0.15);
+				}
+			}
+			else if (Math.abs(liftMotor.getPosition() - desired) > 50){
+				applyBrake(false);
+				if (desired > liftMotor.getPosition()) {
+					liftMotor.set(0.25);
+				}
+				else {
+					liftMotor.set(-0.15);
+				}
+			}else {
+				applyBrake(true);
+			}
+		}
 	}
 
 
