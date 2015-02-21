@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 
 public class Chassis implements Subsystem {
+	//The motor controllers for each wheel
 	protected CANTalon frontRight;
 	protected CANTalon frontLeft;
 	protected CANTalon backRight;
@@ -34,6 +35,8 @@ public class Chassis implements Subsystem {
 		backRight.changeControlMode(CANTalon.ControlMode.Speed);
 		backLeft.changeControlMode(CANTalon.ControlMode.Speed);
 
+		//Left and right are reversed from each other
+		//Front motors have reversed sensors (because of belt drive)
 		frontRight.reverseOutput(false);
 		frontRight.reverseSensor(false);
 		frontLeft.reverseOutput(true);
@@ -56,6 +59,7 @@ public class Chassis implements Subsystem {
 				RobotMap.DRIVER_D, RobotMap.DRIVER_FEED_FORWARD, 00,
 				RobotMap.DRIVER_RAMP, 0);
 
+		//Creates the drivetrain object with the 4 motors
 		drive = new RobotDrive(frontLeft, backLeft, frontRight, backRight);
 
 		drive.setSafetyEnabled(false); // disable safety restrictions to boost
@@ -65,6 +69,9 @@ public class Chassis implements Subsystem {
 
 	}
 
+	/**
+	 * Called periodically during Teleop
+	 */
 	public void iterate() {
 
 		Joystick joystick = Sensors.getDriverJoystick();
@@ -74,7 +81,7 @@ public class Chassis implements Subsystem {
 		//1300 current number.... if debug put actual value to test
 
 
-		if(joystick.getRawButton(2) == true) {				// check if the gyro needs reseting
+		if(joystick.getRawButton(2) == true) {	// check if the gyro needs reseting
 			Sensors.gyroReset();
 			System.out.println("Gyro Reset Succesfull");
 		}
@@ -85,19 +92,20 @@ public class Chassis implements Subsystem {
 		if( joystick.getRawButton( 8 ) ) {
 			isMechanum = true;
 		}
-		if( joystick.getRawButton( 7 ) ) {
+		/**if( joystick.getRawButton( 7 ) ) { //Arcade drive mode disabled
 			isMechanum = false;
-		}
+		}*/
 
 		//================================================
 
+		//Ask whoever wrote this bit. For now, it's probably a good idea to not press button 3, it slows the robot down a whole bunch
 		boolean robotDrive = joystick.getRawButton(3);
-
 		double throttle = joystick.getThrottle()*RobotMap.ROBOT_CONTROL_MODIFIER;
 		if (robotDrive) {
 			throttle*=RobotMap.ROBOT_CONTROL_MODIFIER;
 		}
 
+		//Drives with the appropriate method (arcade (disabled) or mecanum-cartesian) if the joystick is out of the deadzone
 		if( Math.abs(joystick.getX() ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE || 
 				Math.abs( joystick.getY() ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE || 
 				Math.abs( joystick.getZ() ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE )  {  		//all values have a range from -1 to 1

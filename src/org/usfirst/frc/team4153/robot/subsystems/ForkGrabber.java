@@ -4,12 +4,14 @@ import org.usfirst.frc.team4153.robot.RobotMap;
 
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
+/**
+ * Subsystem for controlling the fork grabber
+ */
 public class ForkGrabber implements Subsystem {
 
 	private CANTalon forkMotor;
 	private long currentTime;
-	private double lastValueOfWantedPosition;
+	//private double lastValueOfWantedPosition;
 	double wantedPositionOfGrabber;
 	private boolean wantedOpened = true;   	//true means open
 	private boolean oldWantedOpen = false;
@@ -17,7 +19,7 @@ public class ForkGrabber implements Subsystem {
 	/**
 	 * Sets up the lift, fork, and brake motors and the manipulator joystick
 	 */
-	public void reset() { }
+	public void reset() { } //Does nothing, but has to be here because we're implementing the subsystem interface
 	
 	public void init() {
 
@@ -49,10 +51,11 @@ public class ForkGrabber implements Subsystem {
 	}
 
 	/**
-	 * Called periodically
+	 * Called periodically during teleop
 	 */
 	public void iterate() {
 		
+		//Gets whether or not the grabber should be open from the driver station
 		wantedOpened = SmartDashboard.getBoolean( "OpenFork", true );
 
 //		if ( Robot.getRobot().getManipulatorJoystick().getRawButton(8) ) {
@@ -66,15 +69,16 @@ public class ForkGrabber implements Subsystem {
 //			setPosition(505); 
 //		}
 		
+		//Opens or closes depending
 		if( wantedOpened ) {
 			open();
 		} else {
 			close();
 		}
+		//If the desired position has changed from last iteration, start the timer for the timeout check
 		if (oldWantedOpen != wantedOpened) {
 			currentTime = System.currentTimeMillis();
 		}
-		
 		checkMotorTimeout();
 
 		// System.out.println( "Flex Sensor Position: " + forkMotor.getAnalogInRaw() + ", Motor Setpoint, " + forkMotor.getSetpoint() + ", Motor output: " + forkMotor.getOutputCurrent() );
@@ -87,7 +91,7 @@ public class ForkGrabber implements Subsystem {
 
 	public void close() {
 		forkMotor.enableControl();
-		forkMotor.set( -1 );
+		forkMotor.set( -1 ); //Closes faster than it opens
 	}
 
 	public void open() {
@@ -95,6 +99,9 @@ public class ForkGrabber implements Subsystem {
 		forkMotor.set( 0.5 );
 	}
 
+	/**
+	 * If it has been at least a second, and the motor still hasn't closed, or if the current is too high, slow motor down to prevent burning out
+	 */
 	public void checkMotorTimeout() {
 		SmartDashboard.putNumber("GrabberPosition", forkMotor.getAnalogInRaw());
 
@@ -104,6 +111,9 @@ public class ForkGrabber implements Subsystem {
 		}
 	}
 	
+	/**
+	 * (No longer used) Moves motor to given position (in encoder ticks)
+	 */
 	public void moveTo(double position) {
 		forkMotor.enableControl();
 		if (forkMotor.getPosition() < position) {

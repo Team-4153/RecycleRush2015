@@ -12,7 +12,9 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
-
+/**
+ * Subsystem for managing and getting values from sensors on the robot
+ */
 public class Sensors implements Subsystem {
 
 	private static Gyro gyro;

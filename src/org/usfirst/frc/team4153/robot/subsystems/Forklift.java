@@ -8,23 +8,20 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Forklift implements Subsystem {
 
-	private CANTalon liftMotor;
-	private CANTalon liftMotor2;
-	private CANTalon brakeMotor;
+	private CANTalon liftMotor; //The two CIM motors that operate the lift
+	private CANTalon liftMotor2;//liftMotor2 is slaved to liftMotor
+	private CANTalon brakeMotor; //The window motor that operates the brake
 
-	//Difference between lift motor position and desired position (in encoder value) that is considered "close enough" to the desired position
-	private final int BRAKE_TOLERANCE = 3; //Set later
+	
+	//private final int BRAKE_TOLERANCE = 3; //Difference between lift motor position and desired position (in encoder value) that is considered "close enough" to the desired position
 	private final int FORWARD_SOFT_LIMIT = 11000;
 	private long counter = 0;
 	private long currentTime;
 	private double lastSetPoint = 0;
 
-	boolean firstRun = true;
+	boolean firstRun = true; //Indicates whether or not this is the first iteration run on the Forklift
 
-
-	ForkGrabber forkgrabber;
-
-
+	ForkGrabber forkgrabber; //The grabber on the forklift
 
 	/** 
 	 * when this is true, the motor will calibrate on the next loop
@@ -38,6 +35,8 @@ public class Forklift implements Subsystem {
 	 * Sets up the lift, fork, and brake motors and the manipulator joystick
 	 */
 	public void init() {
+		//Sets whether it should move to a preset defined on the driver station to false when initializing
+		//This is so that the lift will not move until a button is pressed 
 		SmartDashboard.putBoolean( "PresetButtonPressed", false );
 
 
@@ -59,7 +58,7 @@ public class Forklift implements Subsystem {
 		liftMotor.setSafetyEnabled(false);
 
 		liftMotor2 = new CANTalon( RobotMap.LIFT_MOTOR2);
-		liftMotor2.changeControlMode(CANTalon.ControlMode.Follower);
+		liftMotor2.changeControlMode(CANTalon.ControlMode.Follower); //Follows liftMotor
 		liftMotor2.set( liftMotor.getDeviceID() );
 
 
@@ -70,6 +69,7 @@ public class Forklift implements Subsystem {
 		brakeMotor.setProfile(0);
 		brakeMotor.ClearIaccum();
 
+		//Initialize forkgrabber subsystem
 		forkgrabber = new ForkGrabber();
 		forkgrabber.init();
 
@@ -87,6 +87,7 @@ public class Forklift implements Subsystem {
 
 	/** 
 	 * Resets the lift motor to the lowest position and sets that as 0
+	 * (Calibrating runs in another thread)
 	 */
 	public void calibrate() {
 		if (calibrateThread == null ) {
@@ -102,7 +103,8 @@ public class Forklift implements Subsystem {
 	}
 
 	/**
-	 * the can kept complaining I wasnt updating it enough
+	 * the CAN kept complaining I wasn't updating it enough during autonomous
+	 * Just sets the liftMotor to stay at it's current position
 	 */
 	public void autoPeriodic() {
 		liftMotor.set(liftMotor.get());
@@ -116,6 +118,10 @@ public class Forklift implements Subsystem {
 		forkgrabber.open();
 	}
 
+	/**
+	 * The thread used for calibrating lift motor.
+	 * Moves the motor down until it hits the limit switch and then sets that position to 0
+	 */
 	private class CalibrateThread extends Thread {
 		public void run() {
 			try {
@@ -156,7 +162,11 @@ public class Forklift implements Subsystem {
 		}
 	}
 
-
+	/**
+	 * Called periodically during Teleop
+	 * Will calibrate if the driver station tells it to. Calibrating will prevent lift from iterating,
+	 * but the grabber subsystem will always iterate
+	 */
 	public void iterate() {
 		boolean temporary = false;
 		try {
@@ -176,8 +186,6 @@ public class Forklift implements Subsystem {
 			iterateLift();
 		}
 
-
-
 		forkgrabber.iterate();
 
 	}
@@ -191,29 +199,25 @@ public class Forklift implements Subsystem {
 		}
 
 
-		double currentJoystick;
+		double currentJoystick; //The current value from the manipulator joystick
 		double currentPosition;
-		double desired = 0;
-
-		//double actualForkOffset = 0;
-
+		double desired = 0; //Represents the position that the lift motor would like to move to
 
 		currentJoystick = Robot.getRobot().getManipulatorJoystick().getY();
 		currentPosition = liftMotor.getPosition();
 		SmartDashboard.putNumber("currentPos", currentPosition);
 		desired = currentPosition;
 
+		//Ignores preset from driver station if joystick is overriding it
 		if( Math.abs( currentJoystick ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE ) {
 			SmartDashboard.putBoolean( "PresetButtonPressed", false );
 		}
-
+		//If a preset is set on the driver station, set desired position to that preset
 		if( SmartDashboard.getBoolean( "PresetButtonPressed" ) ) {
 			//get lab view values
 			desired = SmartDashboard.getNumber("PresetValue") + SmartDashboard.getNumber("Offset")
 					+ SmartDashboard.getNumber("ContainerOffset") + SmartDashboard.getNumber("DropOffset");
-			//liftMotor.enableControl();
-			//applyBrake( false );
-
+		//Manual control if the joystick value is greater than the deadzone
 		} else {
 			//manipulator control
 			if( Math.abs( currentJoystick ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE ) {
@@ -223,28 +227,33 @@ public class Forklift implements Subsystem {
 					desired = currentPosition - 1100;
 				}
 			}
-
-			//liftMotor.enableControl();
-			//applyBrake( false );
 		}
 
-
+		//If the motor wants to move to above its forward (upper) limit, then set desired to the limit
+		// (-100 for a bit of tolerance)
 		if (desired > FORWARD_SOFT_LIMIT - 100)
 		{
 			desired = FORWARD_SOFT_LIMIT - 100;
 		}
 
-
-
+		//If the desired value has changed from the last iteration, start the timer for the motor timeout, 
+		//and set previous position to current position
+		//TIMEOUT FUNCTIONALITY CURRENTLY COMMENTED OUT
 		if (desired != lastSetPoint) {
 			currentTime = System.currentTimeMillis();
 			lastSetPoint = desired;
 		}
-
 		// If the speed is low and it has been running for a while, stop moving
-
-		//System.out.println(desired);
-
+//		if (( liftMotor.getSpeed() <= RobotMap.DRIVER_JOYSTICK_TOLERANCE ) && ( System.currentTimeMillis() - currentTime >= 5000 )) {
+		//			applyBrake(true);
+		//			desired = currentPosition;
+		//			//liftMotor.disableControl();
+		//			
+		//		}
+		//System.out.println( "Wanted Value: " + desired + "\t    Lift motor position: " + liftMotor.getPosition() );
+		
+		//If motor is less than 200 (encoder ticks) away from desired value, stay put,
+		//otherwise, move to desired value
 		if( Math.abs( liftMotor.getPosition() - desired ) < 200 ) {
 			moveTo(currentPosition);
 			SmartDashboard.putBoolean( "PresetButtonPressed",false);
@@ -253,13 +262,7 @@ public class Forklift implements Subsystem {
 			moveTo(desired);
 		}
 
-		//		if (( liftMotor.getSpeed() <= RobotMap.DRIVER_JOYSTICK_TOLERANCE ) && ( System.currentTimeMillis() - currentTime >= 5000 )) {
-		//			applyBrake(true);
-		//			desired = currentPosition;
-		//			//liftMotor.disableControl();
-		//			
-		//		}
-		//System.out.println( "Wanted Value: " + desired + "\t    Lift motor position: " + liftMotor.getPosition() );
+		//Sends information to Arduino for LED lights
 		Sensors.setAnalogOutput(-liftMotor.getEncPosition()/2000);
 
 	}
@@ -268,7 +271,10 @@ public class Forklift implements Subsystem {
 		liftMotor.setPosition(0);
 	}
 
-
+	/**
+	 * Sets whether or not the brake is applied to given boolean value
+	 * Brake moves until it hits a limit switch and also enables/disables the lift motor
+	 */
 	protected void applyBrake( boolean brakeBoolean) {
 
 		if ( brakeBoolean ) {
@@ -279,17 +285,12 @@ public class Forklift implements Subsystem {
 			brakeMotor.set(0.3);
 			liftMotor.enableControl();			
 		}
-
-
-
 		//		if( Robot.getRobot().getManipulatorJoystick().getRawButton( 4 ) ) {
 		//			brakeMotor.set( 0.4 );
 		//		} 
 		//		if( Robot.getRobot().getManipulatorJoystick().getRawButton( 5 ) ) {
 		//			brakeMotor.set( -0.4 );
 		//		}
-
-
 	}
 
 	public int getPosition() {
@@ -297,7 +298,7 @@ public class Forklift implements Subsystem {
 	}
 
 	/**
-	 * for autonomous only
+	 * for autonomous only (unneeded now that motor is always in PercentVBus mode)
 	 */
 	public void setPercentVBusMode (boolean vBus) {
 		if (vBus) {
@@ -308,15 +309,23 @@ public class Forklift implements Subsystem {
 		}
 	}
 
+	
 	int count = 0;
+	/**
+	 * Moves the lift motor to the given position (in encoder ticks).
+	 * Motor moves at a constant speed towards position (slows some as it approaches)
+	 * @param desired
+	 */
 	public void moveTo( double desired ) {
+		//Prints diagnostic information every ten iterations
 		count ++;
 		if (count % 10 == 0) {
 			System.out.println("Wanted: " + desired+ ", Current: " + liftMotor.getPosition());
 		}
+		
 		// should only try to move if not calibrating
 		if (calibrateThread == null) {
-			if (Math.abs(liftMotor.getPosition() - desired) > 3000) {
+			if (Math.abs(liftMotor.getPosition() - desired) > 3000) { //Far away
 				applyBrake(false);
 				if (desired > liftMotor.getPosition()) {
 					liftMotor.set(0.6);
@@ -325,7 +334,7 @@ public class Forklift implements Subsystem {
 					liftMotor.set(-0.3);
 				}
 			}
-			else if (Math.abs(liftMotor.getPosition() - desired) > 1000) {
+			else if (Math.abs(liftMotor.getPosition() - desired) > 1000) { //Closer (about half the height of a tote)
 				applyBrake(false);
 				if (desired > liftMotor.getPosition()) {
 					liftMotor.set(0.4);
@@ -334,7 +343,7 @@ public class Forklift implements Subsystem {
 					liftMotor.set(-0.2);
 				}
 			}
-			else if (Math.abs(liftMotor.getPosition() - desired) > 500) {
+			else if (Math.abs(liftMotor.getPosition() - desired) > 500) { //Even closer
 				applyBrake(false);
 				if (desired > liftMotor.getPosition()) {
 					liftMotor.set(0.3);
@@ -343,7 +352,7 @@ public class Forklift implements Subsystem {
 					liftMotor.set(-0.15);
 				}
 			}
-			else if (Math.abs(liftMotor.getPosition() - desired) > 50){
+			else if (Math.abs(liftMotor.getPosition() - desired) > 50){ //So close
 				applyBrake(false);
 				if (desired > liftMotor.getPosition()) {
 					liftMotor.set(0.25);

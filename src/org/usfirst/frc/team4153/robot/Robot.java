@@ -37,9 +37,11 @@ public class Robot extends IterativeRobot {
 	VideoCapture capture; 
 	int lastOpenedCamera = 0;
 
+	//Used for timing events in autonomous
 	static long autoTime = System.currentTimeMillis();
 
 	static {
+		//Loads library for vision
 		System.load("/usr/local/lib/lib_OpenCV/java/libopencv_java2410.so");
 	}
 
@@ -57,6 +59,7 @@ public class Robot extends IterativeRobot {
 
 		//Joystick driveStick = new Joystick(RobotMap.DRIVER_JOYSTICK);
 
+		//Initializes robot components
 		sensors = new Sensors();
 		sensors.init();
 
@@ -89,6 +92,9 @@ public class Robot extends IterativeRobot {
 	}
 
 	@Override
+	/**
+	 * Called periodically while robot is disabled
+	 */
 	public void disabledPeriodic() {
 
 		saveJpg();
@@ -124,12 +130,17 @@ public class Robot extends IterativeRobot {
 	 * This function is called periodically during autonomous
 	 */
 	public void autonomousPeriodic() {
+		//Represents the autonomous sequence that the robot should run
 		int mode = (int) SmartDashboard.getNumber("AutoMode");
-		long currentTime = System.currentTimeMillis()-autoTime;
+		//Represents the amount of time into autonomous
+		long currentTime = System.currentTimeMillis()-autoTime; 
 		//forklift.autoPeriodic();
+		
+		//Performs a step in a certain sequence depending on selected mode
 		switch(mode) {
 
 		case RobotMap.DRIVE_FORWARD_MODE:
+			//Drive forward for 2.2 seconds and rotate 90 degrees
 			if (currentTime <= 2200) {
 				chassis.autoDrive( 0.0 , -0.5, 0 );
 			} else {
@@ -141,6 +152,7 @@ public class Robot extends IterativeRobot {
 			}
 			break;
 		case 1:
+			//Picks up tote that starts inside grabbers, turns and moves before turning to face forward again
 			if (currentTime <=300) {
 				forklift.open();
 				Sensors.getGyro().reset();
@@ -182,6 +194,7 @@ public class Robot extends IterativeRobot {
 			}
 			break;
 		case 2:
+			//Grabs a tote that starts inside grabbers and carries it forward
 			if (currentTime<=300) {
 				forklift.setZero();
 				forklift.open();
@@ -229,6 +242,7 @@ public class Robot extends IterativeRobot {
 
 	/**
 	 * This function is called periodically during operator control
+	 * Iterates through robot components
 	 */
 	public void teleopPeriodic() {
 		chassis.iterate();	
