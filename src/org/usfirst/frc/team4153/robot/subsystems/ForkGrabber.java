@@ -1,6 +1,6 @@
 package org.usfirst.frc.team4153.robot.subsystems;
-import org.usfirst.frc.team4153.robot.Robot;
 import org.usfirst.frc.team4153.robot.RobotMap;
+import org.usfirst.frc.team4153.util.Sensors;
 
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -10,8 +10,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class ForkGrabber implements Subsystem {
 
 	private CANTalon forkMotor;
+	private CANTalon rightSpinner;
+	private CANTalon leftSpinner;
 	private long currentTime;
-	//private double lastValueOfWantedPosition;
 	double wantedPositionOfGrabber;
 	private boolean wantedOpened = true;   	//true means open
 	private boolean oldWantedOpen = false;
@@ -19,8 +20,8 @@ public class ForkGrabber implements Subsystem {
 	/**
 	 * Sets up the lift, fork, and brake motors and the manipulator joystick
 	 */
-	public void reset() { } //Does nothing, but has to be here because we're implementing the subsystem interface
 	
+
 	public void init() {
 
 		forkMotor = new CANTalon(RobotMap.FORK_MOTOR);
@@ -35,9 +36,27 @@ public class ForkGrabber implements Subsystem {
 		forkMotor.ClearIaccum();
 		forkMotor.setSafetyEnabled( false );
 		forkMotor.enableBrakeMode( true );
-		
+
 		forkMotor.reverseSensor( false );
 		forkMotor.reverseOutput( true );
+
+		rightSpinner = new CANTalon(RobotMap.SPINNER_RIGHT);
+		leftSpinner  = new CANTalon(RobotMap.SPINNER_LEFT);
+
+		rightSpinner.clearStickyFaults();
+		leftSpinner.clearStickyFaults();
+
+		rightSpinner.changeControlMode(CANTalon.ControlMode.PercentVbus);
+		leftSpinner.changeControlMode(CANTalon.ControlMode.PercentVbus);
+
+		rightSpinner.setSafetyEnabled(false);
+		leftSpinner.setSafetyEnabled(false);
+
+		rightSpinner.enableBrakeMode(true);
+		leftSpinner.enableBrakeMode(false);
+
+		rightSpinner.reverseOutput(false);
+		leftSpinner.reverseOutput(true);
 
 		/*forkMotor.enableForwardSoftLimit(true);
 		forkMotor.setForwardSoftLimit(523);
@@ -45,7 +64,7 @@ public class ForkGrabber implements Subsystem {
 		forkMotor.enableReverseSoftLimit(true);
 		forkMotor.setReverseSoftLimit(490);
 		 */
-		
+
 		oldWantedOpen = SmartDashboard.getBoolean( "OpenFork", true );
 
 	}
@@ -54,22 +73,24 @@ public class ForkGrabber implements Subsystem {
 	 * Called periodically during teleop
 	 */
 	public void iterate() {
-		
+
+
 		//Gets whether or not the grabber should be open from the driver station
 		wantedOpened = SmartDashboard.getBoolean( "OpenFork", true );
 
-//		if ( Robot.getRobot().getManipulatorJoystick().getRawButton(8) ) {
-//			//max value is 523 ( closed fork ), min value is 490 ( open fork )
-//			setPosition(530); 
-//		}
-//		if ( Robot.getRobot().getManipulatorJoystick().getRawButton(9) ) {
-//			setPosition(490); 
-//		}
-//		if ( Robot.getRobot().getManipulatorJoystick().getRawButton( 11 ) ) {
-//			setPosition(505); 
-//		}
-		
+		//		if ( Robot.getRobot().getManipulatorJoystick().getRawButton(8) ) {
+		//			//max value is 523 ( closed fork ), min value is 490 ( open fork )
+		//			setPosition(530); 
+		//		}
+		//		if ( Robot.getRobot().getManipulatorJoystick().getRawButton(9) ) {
+		//			setPosition(490); 
+		//		}
+		//		if ( Robot.getRobot().getManipulatorJoystick().getRawButton( 11 ) ) {
+		//			setPosition(505); 
+		//		}
+
 		//Opens or closes depending
+		
 		if( wantedOpened ) {
 			open();
 		} else {
@@ -81,12 +102,56 @@ public class ForkGrabber implements Subsystem {
 		}
 		checkMotorTimeout();
 
-		// System.out.println( "Flex Sensor Position: " + forkMotor.getAnalogInRaw() + ", Motor Setpoint, " + forkMotor.getSetpoint() + ", Motor output: " + forkMotor.getOutputCurrent() );
-
-		//System.out.println ("Wanted: " + wantedPositionOfGrabber  +", Current: "+ forkMotor.getPosition()+" ForwardLimit: "+forkMotor.isFwdLimitSwitchClosed()+" Back: "+forkMotor.isRevLimitSwitchClosed());
-		
 		oldWantedOpen = wantedOpened;
-	
+
+		// Now check for spinner status
+		int spinnerState = (int) SmartDashboard.getNumber("Intake");
+		switch (spinnerState) {
+		case (RobotMap.SPIN_FORWARD_STATE):
+			forward();
+		break;
+		case (RobotMap.SPIN_OFF_STATE):{
+			// The spinner will be off unless the driver trigger is pressed
+			if (Sensors.getDriverJoystick().getRawButton(RobotMap.JOYSTICK_SPIN_BUTTON)) {
+				reverse();
+			} else {
+				stopSpinners();
+			}
+		}
+		break;
+		case (RobotMap.SPIN_REVERSE_STATE):
+			reverse();
+		break;
+		}
+	}
+
+	// TODO this code all assumes that positive on the right spinner means
+	// forward. This might or might not work. It also might not matter. 
+
+	// Note that the left spin motor output is reversed.
+
+	/**
+	 * controls the spinning motors on the end of the arms: forward means out
+	 */
+	public void forward() {
+		rightSpinner.set(RobotMap.SPIN_FORWARD_SPEED);
+		leftSpinner.set(RobotMap.SPIN_FORWARD_SPEED);
+	}
+
+	/**
+	 * controls the spinning motors on the end of the arms: reverse means in
+	 */
+	public void reverse() {
+		rightSpinner.set(-RobotMap.SPIN_REVERSE_SPEED);
+		leftSpinner.set(-RobotMap.SPIN_REVERSE_SPEED);
+	}
+
+	/**
+	 * stop the motors from spinning on the ends of the arms
+	 */
+	public void stopSpinners() {
+		rightSpinner.set(0);
+		leftSpinner.set(0);
 	}
 
 	public void close() {
@@ -104,13 +169,19 @@ public class ForkGrabber implements Subsystem {
 	 */
 	public void checkMotorTimeout() {
 		SmartDashboard.putNumber("GrabberPosition", forkMotor.getAnalogInRaw());
-
-		if ( (System.currentTimeMillis() - currentTime >= 1000) || forkMotor.getOutputCurrent()  >= 5.5) {			//GOES THROUGH LOOP
+		if ( checkStalling()) {			//GOES THROUGH LOOP
 			forkMotor.set( -0.1 );
 			System.out.println("Lessening grabber output");
 		}
 	}
-	
+
+	/**
+	 * @return true if the motor is probably stalling
+	 */
+	public boolean checkStalling() {
+		return (System.currentTimeMillis() - currentTime >= 1000) || forkMotor.getOutputCurrent()  >= 5.5;
+	}
+
 	/**
 	 * (No longer used) Moves motor to given position (in encoder ticks)
 	 */
@@ -143,6 +214,6 @@ public class ForkGrabber implements Subsystem {
 		return ( inPosition()  );
 	}
 
-
+	public void reset() { } //Does nothing, but has to be here because we're implementing the subsystem interface
 
 }

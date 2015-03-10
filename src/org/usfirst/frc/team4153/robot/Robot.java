@@ -8,6 +8,7 @@ import org.opencv.highgui.Highgui;
 import org.opencv.highgui.VideoCapture;
 import org.usfirst.frc.team4153.robot.subsystems.Chassis;
 import org.usfirst.frc.team4153.robot.subsystems.Forklift;
+import org.usfirst.frc.team4153.robot.subsystems.LEDHandler;
 import org.usfirst.frc.team4153.util.Sensors;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -32,6 +33,7 @@ public class Robot extends IterativeRobot {
 	Chassis chassis;
 	Forklift forklift;
 	Sensors sensors;
+	LEDHandler ledHandler;
 	USBCamera usbCamera;
 	Joystick manipulatorJoystick;
 	VideoCapture capture; 
@@ -68,6 +70,9 @@ public class Robot extends IterativeRobot {
 
 		forklift = new Forklift();
 		forklift.init();
+		
+		ledHandler = new LEDHandler();
+		ledHandler.init();
 
 
 		//usbCamera = new USBCamera("cam1");
@@ -88,7 +93,7 @@ public class Robot extends IterativeRobot {
 		// I would assume that it's possible to put more cameras on the rio (usb hub required)
 		// and so read 2,3,4,5...
 		capture.open(1, 640, 480, 10);
-
+		
 	}
 
 	@Override
@@ -151,7 +156,7 @@ public class Robot extends IterativeRobot {
 				}
 			}
 			break;
-		case 1:
+		case RobotMap.PICK_TOTE_AND_DRIVE:
 			//Picks up tote that starts inside grabbers, turns and moves before turning to face forward again
 			if (currentTime <=300) {
 				forklift.open();
@@ -193,7 +198,7 @@ public class Robot extends IterativeRobot {
 				}
 			}
 			break;
-		case 2:
+		case RobotMap.PICK_TOTE_AND_PUSH_BIN:
 			//Grabs a tote that starts inside grabbers and carries it forward
 			if (currentTime<=300) {
 				forklift.setZero();
@@ -248,7 +253,7 @@ public class Robot extends IterativeRobot {
 		chassis.iterate();	
 		forklift.iterate();
 		sensors.iterate();
-
+		ledHandler.iterate();
 
 
 	}

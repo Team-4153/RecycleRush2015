@@ -21,7 +21,7 @@ public class Forklift implements Subsystem {
 
 	boolean firstRun = true; //Indicates whether or not this is the first iteration run on the Forklift
 
-	ForkGrabber forkgrabber; //The grabber on the forklift
+	public ForkGrabber forkgrabber; //The grabber on the forklift
 
 	/** 
 	 * when this is true, the motor will calibrate on the next loop
@@ -352,7 +352,7 @@ public class Forklift implements Subsystem {
 					liftMotor.set(-0.15);
 				}
 			}
-			else if (Math.abs(liftMotor.getPosition() - desired) > 50){ //So close
+			else if (Math.abs(liftMotor.getPosition() - desired) > 50){ 			//So close
 				applyBrake(false);
 				if (desired > liftMotor.getPosition()) {
 					liftMotor.set(0.25);

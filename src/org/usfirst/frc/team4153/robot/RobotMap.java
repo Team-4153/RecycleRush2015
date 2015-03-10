@@ -31,6 +31,8 @@ public abstract class RobotMap {
 	public static final int LIFT_MOTOR2 = 8;    	
 	public static final int FORK_MOTOR = 7;
 	public static final int BRAKE_MOTOR = 5;
+	public static final int SPINNER_RIGHT = 9;
+	public static final int SPINNER_LEFT = 10;
 
 	// Encoder
 	public static final int ENCODER_FACTOR = 4;
@@ -57,8 +59,30 @@ public abstract class RobotMap {
 	public static final int BRAKE_MOTOR_RAMP = 36;
 	public static final int FORK_POSITION_TOLERANCE = 5;
 	
+	// Spinner constants: both should be positive
+	public static final double SPIN_FORWARD_SPEED = 0.4;
+	public static final double SPIN_REVERSE_SPEED = 0.3;
+	
+	// Spinner switch states
+	public static final int SPIN_FORWARD_STATE = 0;
+	public static final int SPIN_OFF_STATE = 1;
+	public static final int SPIN_REVERSE_STATE = 2;
+	// the spinner will run if it is in off state while this button is pressed
+	public static final int JOYSTICK_SPIN_BUTTON = 1;
+	
+	// Arduino digital I/O
+	// All values are largely arbitrary
+	public static final int ARDUINO_ALLIANCE_COLOR_PORT = 3;
+	public static final int ARDUINO_ARMS_OPEN_PORT = 4;
+	public static final int ARDUINO_ARMS_STALLED_PORT = 5;
+	public static final int ARDUINO_ENABLE_PORT = 6;
+	
+	
+	
 	// Auto modes
 	public static final int DRIVE_FORWARD_MODE = 0;
+	public static final int PICK_TOTE_AND_PUSH_BIN = 2;
+	public static final int PICK_TOTE_AND_DRIVE = 1;
 	
 	
 	
