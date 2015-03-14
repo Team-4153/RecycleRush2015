@@ -1,6 +1,10 @@
 package org.usfirst.frc.team4153.robot.subsystems;
 
 import org.usfirst.frc.team4153.robot.RobotMap;
+
+//                            USELESS CLASS............. KEPT THERE AS PROOF OF A ONCE LOST DREAM
+
+
 import org.usfirst.frc.team4153.util.Sensors;
 
 import edu.wpi.first.wpilibj.Talon;
@@ -24,24 +28,24 @@ public class Spinners implements Subsystem {
 	@Override
 	public void iterate() {
 		// Now check for spinner status
-				int spinnerState = (int) SmartDashboard.getNumber("Intake");
-				switch (spinnerState) {
-				case (RobotMap.SPIN_FORWARD_STATE):
-					forward();
-				break;
-				case (RobotMap.SPIN_OFF_STATE):{
-					// The spinner will be off unless the driver trigger is pressed
-					if (Sensors.getDriverJoystick().getRawButton(RobotMap.JOYSTICK_SPIN_BUTTON)) {
-						reverse();
-					} else {
-						stopSpinners();
-					}
-				}
-				break;
-				case (RobotMap.SPIN_REVERSE_STATE):
-					reverse();
-				break;
-				}
+		int spinnerState = (int) SmartDashboard.getNumber("Intake");
+		switch (spinnerState) {
+		case (RobotMap.SPIN_FORWARD_STATE):
+			forward();
+		break;
+		case (RobotMap.SPIN_OFF_STATE):{
+			// The spinner will be off unless the driver trigger is pressed
+			if (Sensors.getDriverJoystick().getRawButton(RobotMap.JOYSTICK_SPIN_BUTTON)) {
+				reverse();
+			} else {
+				stopSpinners();   
+			}
+		}
+		break;
+		case (RobotMap.SPIN_REVERSE_STATE):
+			reverse();
+		break;
+		}
 	}
 
 	@Override
@@ -52,15 +56,15 @@ public class Spinners implements Subsystem {
 	
 	public void forward() {
 		rightSpinner.set(RobotMap.SPIN_FORWARD_SPEED);
-		leftSpinner.set(-RobotMap.SPIN_FORWARD_SPEED);
+		leftSpinner.set(RobotMap.SPIN_FORWARD_SPEED);
 	}
 
 	/**
 	 * controls the spinning motors on the end of the arms: reverse means in
 	 */
 	public void reverse() {
-		rightSpinner.set(-RobotMap.SPIN_REVERSE_SPEED);
-		leftSpinner.set(RobotMap.SPIN_REVERSE_SPEED);
+		rightSpinner.set(-RobotMap.SPIN_REVERSE_SPEED);		//no change... everet likey
+		leftSpinner.set(-RobotMap.SPIN_REVERSE_SPEED);
 	}
 
 	/**

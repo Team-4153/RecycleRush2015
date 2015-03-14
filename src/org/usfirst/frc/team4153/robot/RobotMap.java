@@ -20,7 +20,7 @@ public abstract class RobotMap {
 	public static final double DRIVER_JOYSTICK_TWIST_MODIFIER = 0.35;
 	public static final double DRIVER_MAX_OUTPUT = 1450;					//not part of PID
 	
-	public static final double ROBOT_CONTROL_MODIFIER = 0.3;
+	public static final double ROBOT_CONTROL_MODIFIER = 0.5;
 
 	// Motor ports
 	public static final int FRONT_RIGHT_TALON = 2;
@@ -31,8 +31,8 @@ public abstract class RobotMap {
 	public static final int LIFT_MOTOR2 = 8;    	
 	public static final int FORK_MOTOR = 7;
 	public static final int BRAKE_MOTOR = 5;
-	public static final int SPINNER_RIGHT = 9;
-	public static final int SPINNER_LEFT = 10;
+	public static final int SPINNER_RIGHT = 1;
+	public static final int SPINNER_LEFT = 2;
 
 	// Encoder
 	public static final int ENCODER_FACTOR = 4;
@@ -81,8 +81,9 @@ public abstract class RobotMap {
 	
 	// Auto modes
 	public static final int DRIVE_FORWARD_MODE = 0;
-	public static final int PICK_TOTE_AND_PUSH_BIN = 2;
 	public static final int PICK_TOTE_AND_DRIVE = 1;
+	public static final int PICK_TOTE_AND_PUSH_BIN = 2;
+	public static final int DO_NOTHING = 3;
 	
 	
 	

@@ -52,7 +52,7 @@ public class Forklift implements Subsystem {
 		liftMotor.reverseSensor(true);
 		liftMotor.reverseOutput( false );
 		liftMotor.enableBrakeMode( true );
-		liftMotor.setReverseSoftLimit( 100 );
+		//liftMotor.setReverseSoftLimit( 100 );
 		liftMotor.setForwardSoftLimit(FORWARD_SOFT_LIMIT); 			/// TODO Check and change
 		liftMotor.enableForwardSoftLimit(true);
 		liftMotor.setSafetyEnabled(false);
@@ -154,7 +154,7 @@ public class Forklift implements Subsystem {
 				}
 				//==================================================
 				calibrateThread = null;
-				liftMotor.enableReverseSoftLimit(true);
+				//liftMotor.enableReverseSoftLimit(true);
 				liftMotor.enableForwardSoftLimit(true);
 				System.out.println( "Finished Calibrating! ... Encoder Value: " + liftMotor.getPosition() );
 				SmartDashboard.putBoolean( "PresetButtonPressed", false );
@@ -222,9 +222,9 @@ public class Forklift implements Subsystem {
 			//manipulator control
 			if( Math.abs( currentJoystick ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE ) {
 				if( currentJoystick > 0.0 ) {
-					desired = currentPosition + 1100;		//// min position should be zero.... max position should be 7810
+					desired = currentPosition + (4000 * currentJoystick);		//// min position should be zero.... max position should be 7810
 				} else {
-					desired = currentPosition - 1100;
+					desired = currentPosition - 300; 
 				}
 			}
 		}
@@ -264,6 +264,7 @@ public class Forklift implements Subsystem {
 
 		//Sends information to Arduino for LED lights
 		Sensors.setAnalogOutput(-liftMotor.getEncPosition()/2000);
+		System.out.println(-liftMotor.getEncPosition()/2000);
 
 	}
 	
@@ -279,7 +280,7 @@ public class Forklift implements Subsystem {
 
 		if ( brakeBoolean ) {
 			brakeMotor.set(-0.3);
-			liftMotor.disableControl();		
+			liftMotor.disableControl();	
 		}
 		else {
 			brakeMotor.set(0.3);
@@ -320,7 +321,7 @@ public class Forklift implements Subsystem {
 		//Prints diagnostic information every ten iterations
 		count ++;
 		if (count % 10 == 0) {
-			System.out.println("Wanted: " + desired+ ", Current: " + liftMotor.getPosition());
+			//System.out.println("Wanted: " + desired+ ", Current: " + liftMotor.getPosition());
 		}
 		
 		// should only try to move if not calibrating

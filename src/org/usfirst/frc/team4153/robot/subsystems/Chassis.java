@@ -99,12 +99,14 @@ public class Chassis implements Subsystem {
 		//================================================
 
 		//Ask whoever wrote this bit. For now, it's probably a good idea to not press button 3, it slows the robot down a whole bunch
-		boolean robotDrive = joystick.getRawButton(3);
-		double throttle = joystick.getThrottle()*RobotMap.ROBOT_CONTROL_MODIFIER;
-		if (robotDrive) {
+		//boolean robotDrive = joystick.getRawButton(3);
+		double throttle = (joystick.getThrottle() * -0.25 + 0.75)*RobotMap.ROBOT_CONTROL_MODIFIER;
+		/*if (robotDrive) {
 			throttle*=RobotMap.ROBOT_CONTROL_MODIFIER;
-		}
-
+		}*/
+		
+		//System.out.println( "Drive Joystick... X: " + joystick.getX() + "   Y: " + joystick.getY() + "  Z: " + joystick.getZ() );
+		
 		//Drives with the appropriate method (arcade (disabled) or mecanum-cartesian) if the joystick is out of the deadzone
 		if( Math.abs(joystick.getX() ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE || 
 				Math.abs( joystick.getY() ) > RobotMap.DRIVER_JOYSTICK_TOLERANCE || 
@@ -116,20 +118,32 @@ public class Chassis implements Subsystem {
 				drive.arcadeDrive(joystick);
 			}
 
-			//System.out.println( "Drive Joystick... X: " + joystick.getX() + "   Y: " + joystick.getY() + "  Z: " + joystick.getZ() );
+			
 		} else {
 
 			if( isMechanum ) {
 				drive.mecanumDrive_Cartesian( 0.0 , 0.0, 0.0, 0.0 );
+				//System.out.println( "GYRO VALUE: " + Sensors.getGyroAngle() );			//*******************************
 			} else {
 				drive.arcadeDrive(joystick);
 			}
 		}
-
+		
 
 
 	}
 
+	public void resetEncoders() {
+		backRight.setPosition(0);
+		backLeft.setPosition(0);
+		frontRight.setPosition(0);
+		frontLeft.setPosition(0);
+	}
+	
+	public String getEncoderPositions() {
+		return ("\nBR: " + backRight.getPosition() + "\nBL: " + backLeft.getPosition() + "\nFR: " + frontRight.getPosition() + "\nFL: " + frontLeft.getPosition());
+	}
+	
 	/** 
 	 * Orders the drive to speeds x and y
 	 * @param x [-1.0, 1.0]

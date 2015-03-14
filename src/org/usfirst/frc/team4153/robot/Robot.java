@@ -9,6 +9,7 @@ import org.opencv.highgui.VideoCapture;
 import org.usfirst.frc.team4153.robot.subsystems.Chassis;
 import org.usfirst.frc.team4153.robot.subsystems.Forklift;
 import org.usfirst.frc.team4153.robot.subsystems.LEDHandler;
+import org.usfirst.frc.team4153.robot.subsystems.Spinners;
 import org.usfirst.frc.team4153.util.Sensors;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -34,10 +35,11 @@ public class Robot extends IterativeRobot {
 	Forklift forklift;
 	Sensors sensors;
 	LEDHandler ledHandler;
-	USBCamera usbCamera;
 	Joystick manipulatorJoystick;
+	
 	VideoCapture capture; 
 	int lastOpenedCamera = 0;
+	USBCamera usbCamera;
 
 	//Used for timing events in autonomous
 	static long autoTime = System.currentTimeMillis();
@@ -73,6 +75,8 @@ public class Robot extends IterativeRobot {
 		
 		ledHandler = new LEDHandler();
 		ledHandler.init();
+		
+	
 
 
 		//usbCamera = new USBCamera("cam1");
@@ -107,6 +111,10 @@ public class Robot extends IterativeRobot {
 		Sensors.resetIntegration();
 
 		autoTime = System.currentTimeMillis();
+		
+		ledHandler.disable();
+		
+		//System.out.println("Disabled");
 
 		////////////////////////////////////
 		//		try {
@@ -129,7 +137,10 @@ public class Robot extends IterativeRobot {
 		//////////////////////////////
 	}
 
-
+	public void autonomousInit() {
+		Sensors.getGyro().reset();
+		chassis.resetEncoders();
+	}
 
 	/**
 	 * This function is called periodically during autonomous
@@ -149,13 +160,19 @@ public class Robot extends IterativeRobot {
 			if (currentTime <= 2200) {
 				chassis.autoDrive( 0.0 , -0.5, 0 );
 			} else {
-				if (Sensors.getGyroAngle()<90) {
+				chassis.autoDrive(0.0, 0.0, 0.0);
+				System.out.println(chassis.getEncoderPositions());
+				/*if (Sensors.getGyroAngle()<90) {
 					chassis.autoDrive(0, 0, 0.3);
 				}else {
 					chassis.autoDrive(0, 0, 0);
-				}
+				}*/
 			}
 			break;
+		case RobotMap.DO_NOTHING:
+			//just chill
+			break;
+
 		case RobotMap.PICK_TOTE_AND_DRIVE:
 			//Picks up tote that starts inside grabbers, turns and moves before turning to face forward again
 			if (currentTime <=300) {
@@ -199,7 +216,6 @@ public class Robot extends IterativeRobot {
 			}
 			break;
 		case RobotMap.PICK_TOTE_AND_PUSH_BIN:
-			//Grabs a tote that starts inside grabbers and carries it forward
 			if (currentTime<=300) {
 				forklift.setZero();
 				forklift.open();
@@ -210,40 +226,40 @@ public class Robot extends IterativeRobot {
 				
 				forklift.moveTo(-2000);
 				
-			}else if(currentTime <= 1700) { 
+			}else if(currentTime <= 2000) { 			//lower arms and close grabber
 				
 				forklift.moveTo(-2000);
 				forklift.close();
 				
-			}else if (currentTime <= 2700) {
+			}else if (currentTime <= 2700) {			//raise the arms
 				
 				forklift.moveTo(1300);
 				
-			} else if (currentTime <= 3400) {
+			} else if (currentTime <= 3400) {			//move for
 				
 				forklift.moveTo(1300);
-				chassis.autoDrive(0.6, 0.15, 0);
+				chassis.autoDrive(0.6, 0.0, 0);
 				
-			} else if (currentTime <= 5900) {
+			} else if (currentTime <= 5700) {			//raised from 5400 to 5700
 				
-				forklift.moveTo(1300);
 				chassis.autoDrive(0., -0.5, 0);
 				
-			} else if (currentTime>=6400) {
+			} else if (currentTime<=6400) {				// turn around
+				
 				forklift.moveTo(1300);
 				if (Sensors.getGyroAngle()<90) {
 					chassis.autoDrive(0, 0, 0.25);
 				}else {
 					chassis.autoDrive(0, 0, 0);
 				}
+			} else if(currentTime<=7900) {
+				//chill
+				chassis.autoDrive( 0, 0, 0 );
 				
 			}
-
 		}
 
 	}
-
-
 
 	/**
 	 * This function is called periodically during operator control

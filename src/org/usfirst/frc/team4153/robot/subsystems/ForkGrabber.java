@@ -10,8 +10,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class ForkGrabber implements Subsystem {
 
 	private CANTalon forkMotor;
-	private CANTalon rightSpinner;
-	private CANTalon leftSpinner;
 	private long currentTime;
 	double wantedPositionOfGrabber;
 	private boolean wantedOpened = true;   	//true means open
@@ -40,23 +38,7 @@ public class ForkGrabber implements Subsystem {
 		forkMotor.reverseSensor( false );
 		forkMotor.reverseOutput( true );
 
-		rightSpinner = new CANTalon(RobotMap.SPINNER_RIGHT);
-		leftSpinner  = new CANTalon(RobotMap.SPINNER_LEFT);
-
-		rightSpinner.clearStickyFaults();
-		leftSpinner.clearStickyFaults();
-
-		rightSpinner.changeControlMode(CANTalon.ControlMode.PercentVbus);
-		leftSpinner.changeControlMode(CANTalon.ControlMode.PercentVbus);
-
-		rightSpinner.setSafetyEnabled(false);
-		leftSpinner.setSafetyEnabled(false);
-
-		rightSpinner.enableBrakeMode(true);
-		leftSpinner.enableBrakeMode(false);
-
-		rightSpinner.reverseOutput(false);
-		leftSpinner.reverseOutput(true);
+	
 
 		/*forkMotor.enableForwardSoftLimit(true);
 		forkMotor.setForwardSoftLimit(523);
@@ -104,25 +86,7 @@ public class ForkGrabber implements Subsystem {
 
 		oldWantedOpen = wantedOpened;
 
-		// Now check for spinner status
-		int spinnerState = (int) SmartDashboard.getNumber("Intake");
-		switch (spinnerState) {
-		case (RobotMap.SPIN_FORWARD_STATE):
-			forward();
-		break;
-		case (RobotMap.SPIN_OFF_STATE):{
-			// The spinner will be off unless the driver trigger is pressed
-			if (Sensors.getDriverJoystick().getRawButton(RobotMap.JOYSTICK_SPIN_BUTTON)) {
-				reverse();
-			} else {
-				stopSpinners();
-			}
-		}
-		break;
-		case (RobotMap.SPIN_REVERSE_STATE):
-			reverse();
-		break;
-		}
+		
 	}
 
 	// TODO this code all assumes that positive on the right spinner means
@@ -133,26 +97,7 @@ public class ForkGrabber implements Subsystem {
 	/**
 	 * controls the spinning motors on the end of the arms: forward means out
 	 */
-	public void forward() {
-		rightSpinner.set(RobotMap.SPIN_FORWARD_SPEED);
-		leftSpinner.set(RobotMap.SPIN_FORWARD_SPEED);
-	}
 
-	/**
-	 * controls the spinning motors on the end of the arms: reverse means in
-	 */
-	public void reverse() {
-		rightSpinner.set(-RobotMap.SPIN_REVERSE_SPEED);
-		leftSpinner.set(-RobotMap.SPIN_REVERSE_SPEED);
-	}
-
-	/**
-	 * stop the motors from spinning on the ends of the arms
-	 */
-	public void stopSpinners() {
-		rightSpinner.set(0);
-		leftSpinner.set(0);
-	}
 
 	public void close() {
 		forkMotor.enableControl();
@@ -171,7 +116,7 @@ public class ForkGrabber implements Subsystem {
 		SmartDashboard.putNumber("GrabberPosition", forkMotor.getAnalogInRaw());
 		if ( checkStalling()) {			//GOES THROUGH LOOP
 			forkMotor.set( -0.1 );
-			System.out.println("Lessening grabber output");
+			//System.out.println("Lessening grabber output");
 		}
 	}
 
