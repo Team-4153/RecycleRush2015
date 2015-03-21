@@ -279,11 +279,11 @@ public class Forklift implements Subsystem {
 	protected void applyBrake( boolean brakeBoolean) {
 
 		if ( brakeBoolean ) {
-			brakeMotor.set(-0.3);
+			brakeMotor.set(-0.6);
 			liftMotor.disableControl();	
 		}
 		else {
-			brakeMotor.set(0.3);
+			brakeMotor.set(0.6);
 			liftMotor.enableControl();			
 		}
 		//		if( Robot.getRobot().getManipulatorJoystick().getRawButton( 4 ) ) {

@@ -167,6 +167,7 @@ public class Robot extends IterativeRobot {
 				}else {
 					chassis.autoDrive(0, 0, 0);
 				}*/
+				//forklift.moveTo(2000);
 			}
 			break;
 		case RobotMap.DO_NOTHING:

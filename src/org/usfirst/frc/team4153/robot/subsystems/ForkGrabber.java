@@ -124,7 +124,9 @@ public class ForkGrabber implements Subsystem {
 	 * @return true if the motor is probably stalling
 	 */
 	public boolean checkStalling() {
-		return (System.currentTimeMillis() - currentTime >= 1000) || forkMotor.getOutputCurrent()  >= 5.5;
+	//	return (System.currentTimeMillis() - currentTime >= 1000) || forkMotor.getOutputCurrent()  >= 5.5; prevent using stalling if holding container
+		return ((System.currentTimeMillis() - currentTime >= 1000) && !SmartDashboard.getBoolean("container"))|| forkMotor.getOutputCurrent()  >= 5.5;
+		
 	}
 
 	/**
